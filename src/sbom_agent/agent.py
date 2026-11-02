@@ -15,6 +15,7 @@ from pathlib import Path
 
 from agents import Agent, Runner, function_tool
 
+from .criteria import load_criteria
 from .models import AgentDecision, Finding
 
 INSTRUCTIONS = """\
@@ -27,14 +28,16 @@ INSTRUCTIONS = """\
    - 취약점 설명에 적힌 공격 전제 조건(특정 설정, 실행 환경, 배포 형태, 기능 활성화 여부)이
      이 서비스에서 성립하는지 설정 파일과 빌드 파일로 확인한다.
    - 외부 요청 값이 해당 기능까지 흘러가는지 컨트롤러부터 따라가 본다.
-2. 최종 우선순위를 정한다(P1 긴급, P2 높음, P3 보통, P4 낮음).
+2. 최종 우선순위를 아래 판정 기준으로 정한다.
    - 규칙 판정이 출발점이다. 바꿀 때는 위에서 찾은 구체 근거(파일 경로와 줄 번호)가 있어야 한다.
    - 근거가 부족하면 규칙 판정을 유지하고 confidence 를 낮춘다.
 3. 조치안을 쓴다: 올릴 버전(수정 버전 목록에서 선택), 고칠 파일, 당장 할 수 있는 임시 완화책.
 
 추측을 사실처럼 쓰지 않는다. evidence 에는 도구로 확인한 내용과 입력에 있는 외부 지표만 쓴다.
 설명은 한국어로 쓴다.
-"""
+
+[판정 기준]
+""" + load_criteria()
 
 MAX_READ_LINES = 120
 
