@@ -47,7 +47,8 @@ PYTHONPATH=src python -m sbom_agent.cli run --scan out/grype.json --src sample-a
 #   정답을 매긴 건만 에이전트로 판정하려면 --keys eval/gold30.csv 를 붙인다(나머지는 규칙 판정 유지)
 
 # 5) 정확도 비교
-PYTHONPATH=src python -m sbom_agent.cli eval --results out/results.json --gold eval/gold.csv
+PYTHONPATH=src python -m sbom_agent.cli eval --results out/results.json --gold eval/gold.csv --out eval/result_새이름.md
+#   이미 있는 결과 파일(1차 기록 eval/result.md 등)은 --force 없이는 덮어쓰지 않는다
 ```
 
 ## 예제 서비스 (`sample-app/`)

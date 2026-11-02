@@ -57,13 +57,17 @@ def cmd_run(a) -> None:
     for f in findings:
         d, trace, err, stats = judged.get(f.key, (None, [], None, None))
         status = "skipped" if f.key not in judged else ("ok" if d else "failed")
+        proposed = d.tier.value if d else None
+        applied, needs_review = limit_change(f.rule_tier.value, proposed)
         rows.append({
             "key": f.key, "vuln_id": f.vuln_id, "package": f.package, "version": f.version,
             "cvss": f.cvss, "epss": f.epss, "in_kev": f.in_kev, "fixed_versions": f.fixed_versions,
             "direct_usages": f.direct_usages, "in_runtime": f.in_runtime,
             "cvss_only_tier": cvss_only_tier(f).value,
             "rule_tier": f.rule_tier.value, "rule_reasons": f.rule_reasons,
-            "agent_tier": d.tier.value if d else f.rule_tier.value,
+            "agent_tier": applied,
+            "agent_proposed_tier": proposed,  # 에이전트 원래 제안(폭 제한 전)
+            "needs_review": needs_review,     # 두 단계 이상 바꾸려 해 한 단계만 반영한 경우
             "agent": d.model_dump(mode="json") if d else None,
             "agent_status": status,  # ok / failed / skipped(에이전트 대상 아님)
             "agent_trace": trace, "agent_error": err,
@@ -114,24 +118,38 @@ def write_snapshot(out: Path, a, snapshot: dict, reach_method: str) -> None:
     (out / "scan_meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def limit_change(rule: str, proposed: str | None) -> tuple[str, bool]:
+    """에이전트는 규칙 판정에서 한 단계까지만 바꾼다. 더 바꾸려 하면 한 단계만 반영하고 사람 검토로 넘긴다."""
+    if proposed is None:
+        return rule, False
+    diff = ORDER[proposed] - ORDER[rule]
+    if abs(diff) < 2:
+        return proposed, False
+    return f"P{ORDER[rule] + (1 if diff > 0 else -1)}", True
+
+
 def render_report(rows: list[dict]) -> str:
     lines = ["# 오픈소스 취약점 조치 우선순위 보고서", "",
-             "| 순위 | 취약점 | 라이브러리 | 심각도 | 악용 가능성 | 실제 악용 | 직접 사용 | 규칙 | 최종 |",
-             "| --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
+             "| 순위 | 취약점 | 라이브러리 | 심각도 | 악용 가능성 | 실제 악용 | 직접 사용 | 규칙 | 최종 | 검토 |",
+             "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     for i, r in enumerate(rows, 1):
         lines.append(
             f"| {i} | {r['vuln_id']} | {r['package']} {r['version']} | {r['cvss'] or '-'} | "
             f"{'-' if r['epss'] is None else format(r['epss'], '.3f')} | {'예' if r['in_kev'] else '아니오'} | "
-            f"{'예' if r['direct_usages'] else '아니오'} | {r['rule_tier']} | **{r['agent_tier']}** |")
+            f"{'예' if r['direct_usages'] else '아니오'} | {r['rule_tier']} | **{r['agent_tier']}** | {'사람 검토 필요' if r.get('needs_review') else ''} |")
     lines.append("")
     for r in rows:
-        if r["agent_tier"] not in ("P1", "P2") and not (r["agent"] and r["agent"]["changed_from_rule"]):
+        changed = r["agent"] and r["agent"]["changed_from_rule"]
+        if r["agent_tier"] not in ("P1", "P2") and not changed and not r.get("needs_review"):
             continue
         lines += [f"## {r['agent_tier']} · {r['vuln_id']} · {r['package']} {r['version']}", ""]
         ag = r["agent"]
         if ag:
-            if ag["changed_from_rule"]:
-                lines.append(f"규칙 판정 {r['rule_tier']} → 최종 {ag['tier']} (확신도 {ag['confidence']:.2f})")
+            if r.get("needs_review"):
+                lines += [f"**사람 검토 필요**: 에이전트 제안 {r['agent_proposed_tier']} → 반영 {r['agent_tier']} "
+                          f"(규칙 판정 {r['rule_tier']}에서 두 단계 이상이라 한 단계만 반영)", ""]
+            elif ag["changed_from_rule"]:
+                lines.append(f"규칙 판정 {r['rule_tier']} → 최종 {r['agent_tier']} (확신도 {ag['confidence']:.2f})")
                 lines.append("")
             lines += [f"**공격 경로**: {ag['exploit_path']}", "", "**근거**", ""]
             lines += [f"- {e}" for e in ag["evidence"]]
@@ -226,6 +244,7 @@ def agent_metrics(all_rows: list[dict], gold: dict[str, str], src: Path,
         f"- 건당 평균 시간: " + (f"{sum(secs) / len(secs):.1f}초 ({len(secs)}건)" if secs else "기록 없음"),
         f"- 건당 평균 토큰: " + (f"{sum(toks) / len(toks):,.0f} ({len(toks)}건)" if toks else "기록 없음"),
         f"- 건당 평균 도구 호출: {sum(tools) / len(tools):.1f}회",
+        f"- 사람 검토 필요(두 단계 이상 변경 제안, 한 단계만 반영): {sum(bool(r.get('needs_review')) for r in ok)}건",
     ]
     if price and usages:
         cost = [(u["input_tokens"] * price[0] + u["output_tokens"] * price[1]) / 1e6 for u in usages]
@@ -260,6 +279,8 @@ def run_label(results: str) -> str:
 
 
 def cmd_eval(a) -> None:
+    if a.out and Path(a.out).exists() and not a.force:  # 이전 측정 기록을 실수로 덮어쓰지 않게
+        raise SystemExit(f"{a.out} 이 이미 있습니다. 새 파일 이름을 주거나 --force 를 붙이세요.")
     runs = {run_label(p): json.loads(Path(p).read_text(encoding="utf-8")) for p in a.results}
     prices = {}
     for spec in a.price or []:  # "모델=입력,출력" (100만 토큰당 달러)
@@ -329,6 +350,7 @@ def main() -> None:
     e.add_argument("--gold", required=True)
     e.add_argument("--out", default="eval/result.md")
     e.add_argument("--src", default="sample-app", help="근거 검증에 쓸 분석 대상 폴더")
+    e.add_argument("--force", action="store_true", help="--out 파일이 이미 있어도 덮어쓴다")
     e.set_defaults(func=cmd_eval)
 
     a = p.parse_args()
