@@ -17,6 +17,7 @@ from agents import Agent, Runner, function_tool
 
 from .criteria import load_criteria
 from .models import AgentDecision, Finding
+from .reach import JarIndex, find_boot_jar
 
 INSTRUCTIONS = """\
 너는 자바 서비스의 오픈소스 취약점 담당 보안 엔지니어다.
@@ -28,6 +29,7 @@ INSTRUCTIONS = """\
    - 취약점 설명에 적힌 공격 전제 조건(특정 설정, 실행 환경, 배포 형태, 기능 활성화 여부)이
      이 서비스에서 성립하는지 설정 파일과 빌드 파일로 확인한다.
    - 외부 요청 값이 해당 기능까지 흘러가는지 컨트롤러부터 따라가 본다.
+   - 라이브러리가 실행 jar 에 들어 있는지, 특정 클래스가 있는지는 실행 jar 도구로 확인한다.
 2. 최종 우선순위를 아래 판정 기준으로 정한다.
    - 규칙 판정이 출발점이다. 바꿀 때는 위에서 찾은 구체 근거(파일 경로와 줄 번호)가 있어야 한다.
    - 근거가 부족하면 규칙 판정을 유지하고 confidence 를 낮춘다.
@@ -40,9 +42,31 @@ INSTRUCTIONS = """\
 """ + load_criteria()
 
 MAX_READ_LINES = 120
+MAX_CLASS_HITS = 40
 
 
-def build_agent(src_root: str | Path, trace: list[str], model: str | None = None) -> Agent:
+def runtime_libraries_text(jar_index: JarIndex | None) -> str:
+    if jar_index is None:
+        return "실행 jar 없음"
+    return "\n".join(sorted(jar_index.libraries())) or "(없음)"
+
+
+def find_class_text(jar_index: JarIndex | None, name: str) -> str:
+    if jar_index is None:
+        return "실행 jar 없음"
+    path = name.strip().removesuffix(".class").replace(".", "/")
+    if path in jar_index.classes:
+        return f"{name} → {jar_index.classes[path]}"
+    hits = [f"{c.replace('/', '.')} → {lib}" for c, lib in sorted(jar_index.classes.items())
+            if c.startswith(path + "/")]
+    if not hits:
+        return "없음"
+    more = f"\n… 외 {len(hits) - MAX_CLASS_HITS}개" if len(hits) > MAX_CLASS_HITS else ""
+    return "\n".join(hits[:MAX_CLASS_HITS]) + more
+
+
+def build_agent(src_root: str | Path, trace: list[str], model: str | None = None,
+                jar_index: JarIndex | None = None) -> Agent:
     root = Path(src_root).resolve()
 
     def _safe(p: str) -> Path:
@@ -91,10 +115,23 @@ def build_agent(src_root: str | Path, trace: list[str], model: str | None = None
         end_line = min(end_line, start_line + MAX_READ_LINES - 1, len(lines))
         return "\n".join(f"{i}: {lines[i - 1]}" for i in range(max(1, start_line), end_line + 1))
 
+    @function_tool
+    def list_runtime_libraries() -> str:
+        """빌드된 실행 jar 안에 실제로 들어 있는 라이브러리 파일 목록을 돌려준다(읽기 전용)."""
+        trace.append("list_runtime_libraries()")
+        return runtime_libraries_text(jar_index)
+
+    @function_tool
+    def find_runtime_class(name: str) -> str:
+        """실행 jar 에서 클래스를 찾아 '클래스 → 라이브러리 파일'로 돌려준다.
+        전체 클래스 이름(org.x.Y) 또는 패키지 접두어(org.x)를 받는다. 최대 40개."""
+        trace.append(f"find_runtime_class({name})")
+        return find_class_text(jar_index, name)
+
     return Agent(
         name="공급망 취약점 판정",
         instructions=INSTRUCTIONS,
-        tools=[list_files, search_code, read_file],
+        tools=[list_files, search_code, read_file, list_runtime_libraries, find_runtime_class],
         output_type=AgentDecision,
         model=model or os.environ.get("OPENAI_MODEL", "gpt-5-mini"),
     )
@@ -128,11 +165,12 @@ def _usage(context_wrapper) -> dict | None:
             "output_tokens": u.output_tokens, "total_tokens": u.total_tokens}
 
 
-async def _judge_one(f: Finding, src_root: str, sem: asyncio.Semaphore, model: str | None):
+async def _judge_one(f: Finding, src_root: str, sem: asyncio.Semaphore, model: str | None,
+                     jar_index: JarIndex | None):
     """(판정, 도구 호출 기록, 오류, {"seconds", "usage"}) 를 돌려준다."""
     trace: list[str] = []
     async with sem:
-        agent = build_agent(src_root, trace, model)
+        agent = build_agent(src_root, trace, model, jar_index)
         t0 = time.perf_counter()
         try:
             res = await Runner.run(agent, _payload(f), max_turns=12)
@@ -149,4 +187,6 @@ async def _judge_one(f: Finding, src_root: str, sem: asyncio.Semaphore, model: s
 
 async def judge_all(findings: list[Finding], src_root: str, concurrency: int = 4, model: str | None = None):
     sem = asyncio.Semaphore(concurrency)
-    return await asyncio.gather(*[_judge_one(f, src_root, sem, model) for f in findings])
+    jar = find_boot_jar(src_root)
+    jar_index = JarIndex(jar) if jar else None  # 색인은 한 번만 만들어 모든 건이 같이 쓴다
+    return await asyncio.gather(*[_judge_one(f, src_root, sem, model, jar_index) for f in findings])
