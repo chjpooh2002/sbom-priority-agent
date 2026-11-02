@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import csv
+import io
 import json
 import re
 from datetime import datetime, timezone
@@ -23,6 +24,16 @@ from .score import apply_rules, cvss_only_tier
 ORDER = {"P1": 1, "P2": 2, "P3": 3, "P4": 4}
 
 
+def read_csv(path: str) -> list[dict]:
+    """UTF-8 을 먼저 읽고, 실패하면 한국어 윈도우 엑셀 기본 저장 형식(CP949)으로 읽는다."""
+    raw = Path(path).read_bytes()
+    try:
+        text = raw.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        text = raw.decode("cp949")
+    return list(csv.DictReader(io.StringIO(text, newline="")))
+
+
 def cmd_run(a) -> None:
     findings = load_grype(a.scan)
     snapshot = enrich(findings, offline=a.offline, kev_file=a.kev_file, epss_file=a.epss_file)
@@ -31,8 +42,7 @@ def cmd_run(a) -> None:
 
     targets = [] if a.no_agent else findings
     if a.keys and not a.no_agent:
-        with open(a.keys, encoding="utf-8-sig", newline="") as fp:
-            wanted = {r["key"] for r in csv.DictReader(fp)}
+        wanted = {r["key"] for r in read_csv(a.keys)}
         targets = [f for f in findings if f.key in wanted]
         if missing := wanted - {f.key for f in findings}:
             print(f"경고: 스캔 결과에 없는 key {len(missing)}건은 건너뜀")
@@ -228,8 +238,7 @@ def alert_metrics(all_rows: list[dict]) -> list[str]:
 def cmd_eval(a) -> None:
     all_rows = json.loads(Path(a.results).read_text(encoding="utf-8"))
     rows = {r["key"]: r for r in all_rows}
-    with open(a.gold, encoding="utf-8-sig") as fp:
-        gold = {r["key"]: r["gold_tier"].strip().upper() for r in csv.DictReader(fp) if r["gold_tier"].strip()}
+    gold = {r["key"]: r["gold_tier"].strip().upper() for r in read_csv(a.gold) if r["gold_tier"].strip()}
     keys = [k for k in gold if k in rows]
     if not keys:
         raise SystemExit("채점할 항목이 없습니다. gold_tier 칸을 채웠는지 확인하세요.")
