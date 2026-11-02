@@ -1,0 +1,88 @@
+{
+  "_설명": "정답 작성용 시트에 넣는 라이브러리별 사용 방식. 빌드 파일·코드·설정·의존성 트리(gradlew dependencies --configuration runtimeClasspath)로 확인한 사실만 적고 판정은 넣지 않는다. 경로는 sample-app 기준.",
+  "log4j-core": [
+    "build.gradle:17 에서 직접 선언(2.14.1).",
+    "GreetingController.java:4-5,15 에서 log4j-api 의 LogManager/Logger 를 가져오고, :19-20 에서 /hello 요청의 User-Agent 헤더 값을 log.info 의 인자로 기록한다.",
+    "실행 클래스패스에는 spring-boot-starter-logging 을 거쳐 들어온 log4j-to-slf4j 2.17.2 와 logback-classic 1.2.11 도 함께 있다. 저장소에 log4j2 설정 파일은 없다. LogManager 가 log4j-core 와 log4j-to-slf4j 중 어느 구현에 연결되는지는 저장소 파일만으로는 확인되지 않는다."
+  ],
+  "log4j-api": [
+    "build.gradle:18 에서 직접 선언(2.14.1). log4j-to-slf4j 2.17.2 가 요구하는 2.17.2 대신 2.14.1 로 해석된다.",
+    "GreetingController.java:4-5 에서 LogManager, Logger 를 가져오고 :20 에서 요청 헤더 값을 기록한다."
+  ],
+  "commons-text": [
+    "build.gradle:19 에서 직접 선언(1.9).",
+    "GreetingController.java:25-27 에서 /template 의 요청 파라미터 text 를 StringSubstitutor.createInterpolator().replace() 에 그대로 넘긴다."
+  ],
+  "commons-lang3": [
+    "commons-text 1.9 의 간접 의존성이다(3.11 이 요청되고 3.12.0 으로 해석).",
+    "코드에서 org.apache.commons.lang3 를 가져오는 곳은 없다."
+  ],
+  "commons-collections": [
+    "build.gradle:20 에서 직접 선언(3.2.1).",
+    "코드에서 org.apache.commons.collections 를 가져오는 곳이 없고, ObjectInputStream 등 자바 직렬화를 쓰는 코드도 없다."
+  ],
+  "h2": [
+    "build.gradle:21 에서 runtimeOnly 로 선언(1.4.200). 코드에서 org.h2 를 가져오는 곳은 없다.",
+    "application.yml:2-4 에서 spring.h2.console.enabled=false 로 설정돼 있다. datasource 설정이 없고, 클래스패스에 spring-jdbc 가 없다."
+  ],
+  "snakeyaml": [
+    "spring-boot-starter 를 거쳐 들어온 간접 의존성이다(1.29). 코드에서 직접 가져오는 곳은 없다.",
+    "Spring Boot 가 시작할 때 src/main/resources/application.yml 을 읽는 데 쓴다. 코드에는 요청으로 YAML 을 받거나 파싱하는 곳이 없다."
+  ],
+  "jackson-databind": [
+    "spring-boot-starter-json 을 거쳐 들어온 간접 의존성이다(2.13.2). 코드에서 직접 가져오는 곳은 없다.",
+    "컨트롤러의 세 엔드포인트는 모두 GET 이고 String 을 반환한다. @RequestBody 와 ObjectMapper 설정(default typing 등)은 없다."
+  ],
+  "jackson-core": [
+    "spring-boot-starter-json 을 거쳐 들어온 간접 의존성이다(2.13.2). 코드에서 직접 가져오는 곳은 없다.",
+    "컨트롤러에 JSON 요청 본문을 받는 엔드포인트(@RequestBody)는 없다."
+  ],
+  "tomcat-embed-core": [
+    "spring-boot-starter-web 에서 spring-boot-starter-tomcat 을 거쳐 들어온 내장 서버다(9.0.60). bootJar(실행형 jar)로 패키징한다.",
+    "모든 HTTP 요청을 받는다(application.yml:6, server.port 8080). 그 밖의 Tomcat 설정(커넥터, AJP, 세션 저장 등)은 저장소에 없다."
+  ],
+  "tomcat-embed-websocket": [
+    "spring-boot-starter-tomcat 을 거쳐 들어온 간접 의존성이다(9.0.60).",
+    "코드에 WebSocket 엔드포인트(@ServerEndpoint, WebSocketConfigurer 등)가 없다."
+  ],
+  "spring-webmvc": [
+    "spring-boot-starter-web 을 거쳐 들어온 간접 의존성이다(5.3.17). GreetingController 의 @RestController 가 /hello, /template, /profile(모두 GET)을 처리한다.",
+    "/profile 은 요청 값을 @ModelAttribute 로 Profile 객체에 바인딩한다(GreetingController.java:31-33). 정적 리소스 설정과 뷰 템플릿은 없다."
+  ],
+  "spring-web": [
+    "spring-boot-starter-web 을 거쳐 들어온 간접 의존성이다(5.3.17).",
+    "GreetingController.java:6-10 에서 org.springframework.web.bind.annotation 의 어노테이션(GetMapping, RequestParam, RequestHeader, ModelAttribute, RestController)을 가져온다."
+  ],
+  "spring-beans": [
+    "spring-boot-starter 를 거쳐 들어온 간접 의존성이다(5.3.17). 코드에서 직접 가져오는 곳은 없다.",
+    "/profile 의 @ModelAttribute 바인딩(GreetingController.java:32)에 프레임워크의 데이터 바인딩이 쓰인다. bootJar 로 패키징하고(WAR 아님), build.gradle:11 은 sourceCompatibility 11, 이 저장소의 빌드와 스캔은 JDK 17 로 했다."
+  ],
+  "spring-context": [
+    "spring-boot-starter 를 거쳐 들어온 간접 의존성이다(5.3.17). 코드에서 직접 가져오는 곳은 없다.",
+    "애플리케이션 컨텍스트 구동에 쓰인다(DemoApplication.java:9)."
+  ],
+  "spring-core": [
+    "spring-boot 를 거쳐 들어온 간접 의존성이다(5.3.17). 코드에서 직접 가져오는 곳은 없다.",
+    "모든 Spring 모듈의 기반이다."
+  ],
+  "spring-expression": [
+    "spring-context 와 spring-webmvc 를 거쳐 들어온 간접 의존성이다(5.3.17).",
+    "코드에서 SpEL(ExpressionParser, @Value 의 #{...})을 직접 쓰는 곳은 없다."
+  ],
+  "spring-boot": [
+    "spring-boot-starter-web 을 거쳐 들어온 간접 의존성이다(2.6.5).",
+    "DemoApplication.java:3,9 에서 SpringApplication.run 으로 구동한다. actuator 는 의존성에 없다."
+  ],
+  "spring-boot-autoconfigure": [
+    "spring-boot-starter 를 거쳐 들어온 간접 의존성이다(2.6.5).",
+    "DemoApplication.java:4,6 의 @SpringBootApplication 으로 자동 설정이 켜진다."
+  ],
+  "logback-classic": [
+    "spring-boot-starter-logging 을 거쳐 들어온 간접 의존성이다(1.2.11). Spring Boot 의 기본 로깅 구현이다.",
+    "저장소에 logback.xml, logback-spring.xml 이 없어 기본 설정으로 동작한다. 코드에서 직접 가져오는 곳은 없다."
+  ],
+  "logback-core": [
+    "logback-classic 을 거쳐 들어온 간접 의존성이다(1.2.11).",
+    "저장소에 logback 설정 파일이 없다. 코드에서 직접 가져오는 곳은 없다."
+  ]
+}
