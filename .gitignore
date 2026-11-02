@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+.cache/
+out/
+sample-app/build/
+sample-app/.gradle/
+.env

@@ -1,0 +1,135 @@
+{
+ "_주의": "테스트용 가짜 데이터",
+ "matches": [
+  {
+   "vulnerability": {
+    "id": "CVE-2021-44228",
+    "severity": "Critical",
+    "cvss": [
+     {
+      "metrics": {
+       "baseScore": 10.0
+      }
+     }
+    ],
+    "fix": {
+     "versions": [
+      "2.15.0"
+     ],
+     "state": "fixed"
+    },
+    "description": "JNDI lookup in log messages"
+   },
+   "relatedVulnerabilities": [],
+   "artifact": {
+    "name": "log4j-core",
+    "version": "2.14.1",
+    "purl": "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1"
+   }
+  },
+  {
+   "vulnerability": {
+    "id": "CVE-2022-42889",
+    "severity": "Critical",
+    "cvss": [
+     {
+      "metrics": {
+       "baseScore": 9.8
+      }
+     }
+    ],
+    "fix": {
+     "versions": [
+      "1.10.0"
+     ],
+     "state": "fixed"
+    },
+    "description": "StringSubstitutor interpolation"
+   },
+   "relatedVulnerabilities": [],
+   "artifact": {
+    "name": "commons-text",
+    "version": "1.9",
+    "purl": "pkg:maven/org.apache.commons/commons-text@1.9"
+   }
+  },
+  {
+   "vulnerability": {
+    "id": "CVE-2022-22965",
+    "severity": "Critical",
+    "cvss": [
+     {
+      "metrics": {
+       "baseScore": 9.8
+      }
+     }
+    ],
+    "fix": {
+     "versions": [
+      "5.3.18"
+     ],
+     "state": "fixed"
+    },
+    "description": "data binding RCE on JDK9+ WAR/Tomcat"
+   },
+   "relatedVulnerabilities": [],
+   "artifact": {
+    "name": "spring-beans",
+    "version": "5.3.17",
+    "purl": "pkg:maven/org.springframework/spring-beans@5.3.17"
+   }
+  },
+  {
+   "vulnerability": {
+    "id": "CVE-2022-1471",
+    "severity": "High",
+    "cvss": [
+     {
+      "metrics": {
+       "baseScore": 8.3
+      }
+     }
+    ],
+    "fix": {
+     "versions": [
+      "2.0"
+     ],
+     "state": "fixed"
+    },
+    "description": "Constructor deserialization"
+   },
+   "relatedVulnerabilities": [],
+   "artifact": {
+    "name": "snakeyaml",
+    "version": "1.29",
+    "purl": "pkg:maven/org.yaml/snakeyaml@1.29"
+   }
+  },
+  {
+   "vulnerability": {
+    "id": "CVE-2015-7501",
+    "severity": "Critical",
+    "cvss": [
+     {
+      "metrics": {
+       "baseScore": 9.8
+      }
+     }
+    ],
+    "fix": {
+     "versions": [
+      "3.2.2"
+     ],
+     "state": "fixed"
+    },
+    "description": "InvokerTransformer deserialization"
+   },
+   "relatedVulnerabilities": [],
+   "artifact": {
+    "name": "commons-collections",
+    "version": "3.2.1",
+    "purl": "pkg:maven/commons-collections/commons-collections@3.2.1"
+   }
+  }
+ ]
+}
