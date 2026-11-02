@@ -10,6 +10,7 @@ import asyncio
 import json
 import os
 import re
+import time
 from pathlib import Path
 
 from agents import Agent, Runner, function_tool
@@ -115,17 +116,31 @@ def _payload(f: Finding) -> str:
     }, ensure_ascii=False, indent=2)
 
 
+def _usage(context_wrapper) -> dict | None:
+    u = getattr(context_wrapper, "usage", None)
+    if u is None:
+        return None
+    return {"requests": u.requests, "input_tokens": u.input_tokens,
+            "output_tokens": u.output_tokens, "total_tokens": u.total_tokens}
+
+
 async def _judge_one(f: Finding, src_root: str, sem: asyncio.Semaphore, model: str | None):
+    """(판정, 도구 호출 기록, 오류, {"seconds", "usage"}) 를 돌려준다."""
     trace: list[str] = []
     async with sem:
         agent = build_agent(src_root, trace, model)
+        t0 = time.perf_counter()
         try:
             res = await Runner.run(agent, _payload(f), max_turns=12)
             d: AgentDecision = res.final_output
             d.key = f.key  # 모델이 키를 바꿔 적는 실수 방지
-            return d, trace, None
+            stats = {"seconds": round(time.perf_counter() - t0, 2), "usage": _usage(res.context_wrapper)}
+            return d, trace, None, stats
         except Exception as e:  # 실패하면 규칙 판정을 유지하고 사유를 남긴다
-            return None, trace, f"{type(e).__name__}: {e}"
+            run_data = getattr(e, "run_data", None)  # 최대 턴 초과 등은 실패 직전까지의 사용량이 붙어 있다
+            stats = {"seconds": round(time.perf_counter() - t0, 2),
+                     "usage": _usage(getattr(run_data, "context_wrapper", None))}
+            return None, trace, f"{type(e).__name__}: {e}", stats
 
 
 async def judge_all(findings: list[Finding], src_root: str, concurrency: int = 4, model: str | None = None):

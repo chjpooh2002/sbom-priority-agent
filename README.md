@@ -44,6 +44,7 @@ PYTHONPATH=src python -m sbom_agent.cli gold --results out/results.json --out ev
 export OPENAI_API_KEY=...
 export OPENAI_MODEL=...            # 사용할 모델 이름
 PYTHONPATH=src python -m sbom_agent.cli run --scan out/grype.json --src sample-app --out out
+#   정답을 매긴 건만 에이전트로 판정하려면 --keys eval/gold30.csv 를 붙인다(나머지는 규칙 판정 유지)
 
 # 5) 정확도 비교
 PYTHONPATH=src python -m sbom_agent.cli eval --results out/results.json --gold eval/gold.csv
