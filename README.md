@@ -29,6 +29,7 @@
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 brew install syft grype            # 윈도우는 각 도구 배포 페이지 참고
+export JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.16.8-hotspot"   # JDK 17 필요 (윈도우 Git Bash 예시, 경로는 설치 위치에 맞게)
 
 # 1) 스캔
 bash scripts/scan.sh sample-app out
