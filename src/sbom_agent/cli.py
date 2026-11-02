@@ -10,9 +10,10 @@ import argparse
 import asyncio
 import csv
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
-from .enrich import enrich
+from .enrich import EPSS_URL, KEV_URL, enrich
 from .load import load_grype
 from .models import Tier
 from .reach import annotate
@@ -23,7 +24,7 @@ ORDER = {"P1": 1, "P2": 2, "P3": 3, "P4": 4}
 
 def cmd_run(a) -> None:
     findings = load_grype(a.scan)
-    enrich(findings, offline=a.offline, kev_file=a.kev_file, epss_file=a.epss_file)
+    snapshot = enrich(findings, offline=a.offline, kev_file=a.kev_file, epss_file=a.epss_file)
     annotate(findings, a.src)
     apply_rules(findings)
 
@@ -50,7 +51,40 @@ def cmd_run(a) -> None:
     out.mkdir(parents=True, exist_ok=True)
     (out / "results.json").write_text(json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8")
     (out / "report.md").write_text(render_report(rows), encoding="utf-8")
+    write_snapshot(out, a, snapshot)
     print(f"{len(rows)}건 처리 → {out/'results.json'}, {out/'report.md'}")
+
+
+def write_snapshot(out: Path, a, snapshot: dict) -> None:
+    """측정에 쓴 외부 지표 원본과 도구·DB 버전을 남긴다. 스냅샷은 --kev-file/--epss-file 로 다시 넣을 수 있다."""
+    for name, data in (("kev_snapshot.json", snapshot["kev"]), ("epss_snapshot.json", snapshot["epss"])):
+        (out / name).write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+
+    desc = json.loads(Path(a.scan).read_text(encoding="utf-8")).get("descriptor", {})
+    sbom = Path(a.scan).parent / "sbom.cdx.json"
+    syft = None
+    if sbom.exists():
+        tools = json.loads(sbom.read_text(encoding="utf-8")).get("metadata", {}).get("tools") or {}
+        comps = tools.get("components", []) if isinstance(tools, dict) else tools
+        syft = next((t.get("version") for t in comps if t.get("name") == "syft"), None)
+    kev = snapshot["kev"]
+    meta = {
+        "run_at": datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds"),
+        "scan_file": Path(a.scan).as_posix(),
+        "scan_date": desc.get("timestamp"),
+        "syft_version": syft,
+        "grype_version": desc.get("version"),
+        "grype_db_built": ((desc.get("db") or {}).get("status") or {}).get("built"),
+        "grype_db_schema": ((desc.get("db") or {}).get("status") or {}).get("schemaVersion"),
+        "kev_source": a.kev_file or KEV_URL,
+        "kev_catalog_version": kev.get("catalogVersion"),
+        "kev_date_released": kev.get("dateReleased"),
+        "epss_source": a.epss_file or EPSS_URL,
+        "epss_dates": sorted({r.get("date") for r in snapshot["epss"]["data"] if r.get("date")}),
+        "epss_rows": len(snapshot["epss"]["data"]),
+        "offline": a.offline,
+    }
+    (out / "scan_meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def render_report(rows: list[dict]) -> str:

@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import time
 from pathlib import Path
@@ -30,13 +31,12 @@ def _cached_get(url: str, name: str, max_age_h: float, offline: bool, params: di
     return r.json()
 
 
-def load_kev(offline: bool = False, kev_file: str | None = None) -> set[str]:
-    data = json.loads(Path(kev_file).read_text(encoding="utf-8")) if kev_file \
+def load_kev(offline: bool = False, kev_file: str | None = None) -> dict:
+    return json.loads(Path(kev_file).read_text(encoding="utf-8")) if kev_file \
         else _cached_get(KEV_URL, "kev.json", 24, offline)
-    return {v["cveID"] for v in data.get("vulnerabilities", [])}
 
 
-def load_epss(cves: list[str], offline: bool = False, epss_file: str | None = None) -> dict[str, tuple[float, float]]:
+def load_epss(cves: list[str], offline: bool = False, epss_file: str | None = None) -> list[dict]:
     if epss_file:
         rows = json.loads(Path(epss_file).read_text(encoding="utf-8")).get("data", [])
     else:
@@ -44,19 +44,24 @@ def load_epss(cves: list[str], offline: bool = False, epss_file: str | None = No
         cves = sorted(set(cves))
         for i in range(0, len(cves), 50):
             chunk = cves[i:i + 50]
-            name = f"epss_{abs(hash(tuple(chunk)))}.json"
+            # hash() 는 실행마다 달라지므로 내용 기준 고정 이름을 쓴다
+            name = f"epss_{hashlib.sha256(','.join(chunk).encode()).hexdigest()[:16]}.json"
             rows += _cached_get(EPSS_URL, name, 24, offline, {"cve": ",".join(chunk)}).get("data", [])
-    return {r["cve"]: (float(r["epss"]), float(r["percentile"])) for r in rows}
+    return rows
 
 
 def enrich(findings: list[Finding], offline: bool = False,
-           kev_file: str | None = None, epss_file: str | None = None) -> None:
-    kev = load_kev(offline, kev_file)
+           kev_file: str | None = None, epss_file: str | None = None) -> dict:
+    """보강하고, 이번에 쓴 원본 지표를 돌려준다(측정 재현용 스냅샷)."""
+    kev_data = load_kev(offline, kev_file)
+    kev = {v["cveID"] for v in kev_data.get("vulnerabilities", [])}
     cves = [c for f in findings for c in [f.vuln_id, *f.aliases] if c.startswith("CVE-")]
-    epss = load_epss(cves, offline, epss_file)
+    epss_rows = load_epss(cves, offline, epss_file)
+    epss = {r["cve"]: (float(r["epss"]), float(r["percentile"])) for r in epss_rows}
     for f in findings:
         ids = [f.vuln_id, *f.aliases]
         f.in_kev = any(i in kev for i in ids)
         hits = [epss[i] for i in ids if i in epss]
         if hits:
             f.epss, f.epss_percentile = max(hits)
+    return {"kev": kev_data, "epss": {"data": epss_rows}}
