@@ -1,0 +1,248 @@
+
+######## out/gpt-6-sol/results.json
+
+=== CVE-2021-44228|log4j-core  정답 P1 | 규칙 P2 (실제 악용이 확인된 목록(KEV)에 있음; 악용 가능성 점수 1.000 (기준 0.1 이상); 심각도 10.0; 우리 코드에서 직접 사용하지 않음) | 에이전트 P2 (conf 0.75)
+  메모: ④에서 멈춤. build.gradle에 직접 선언되어 있고 Controller에서  LogManager, Logger 를 가져오고 :20 에서 요청 헤더 값을 기록하는 과정에서 취약점 발생하고 log.info의 인자로 외부 요청 헤더값을 전달하므로 악성 코드에 쉽게 노출될 수 있다.
+  CVSS 10.0 EPSS 0.99999 KEV True 직접사용 0
+  경로: GET /hello의 User-Agent 헤더가 Log4j API의 log.info 호출까지 전달된다. 다만 이 빌드에서 취약한 log4j-core가 실제 로깅 백엔드로 선택되는지는 확인되지 않아, 코드 실행까지 이어지는 경로는 확정할 수 없다.
+  - 근거: build.gradle:16-18: spring-boot-starter-web과 log4j-core·log4j-api 2.14.1을 선언한다.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:18-21: /hello 요청의 User-Agent를 받아 log.info에 전달한다.
+  - 근거: src/main/resources/application.yml:1-6: 로깅 백엔드나 Log4j 설정은 명시되어 있지 않다.
+  - 근거: 입력 외부 지표: CVSS 10.0, EPSS 0.99999, KEV 등재.
+  도구(9): list_files(**/*) / search_code(log4j|logging|Logger|JndiLookup|spring-boot|PatternLayout) / read_file(build.gradle:1-120) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/resources/application.yml:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-120) / read_file(src/main/java/com/example/demo/Profile.java:1-120) / read_file(settings.gradle:1-60) / search_code(exclude|log4j2|log4j-to-slf4j|logback|logging\.config|logging\.level|JAVA_OPTS|JNDI|jndi|User-Agent|@GetMapping|spring-boot-starter-logging)
+
+=== CVE-2021-44832|log4j-core  정답 P1 | 규칙 P2 (악용 가능성 점수 0.979 (기준 0.1 이상); 우리 코드에서 직접 사용하지 않음) | 에이전트 P4 (conf 0.88)
+  메모: ④에서 멈춤. build.gradle에 직접 선언되어 있고 Controller에서  LogManager, Logger 를 가져오고 :20 에서 요청 헤더 값을 기록하는 과정에서 취약점 발생하고 log.info의 인자로 외부 요청 헤더값을 전달하므로 악성 코드에 쉽게 노출될 수 있다.
+  CVSS 6.6 EPSS 0.97906 KEV False 직접사용 0
+  경로: 확인된 경로 없음
+  - 근거: build.gradle:17-18 — log4j-core와 log4j-api 2.14.1을 직접 선언함.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:15-20 — /hello의 외부 User-Agent 헤더가 Log4j 로거에 전달됨. 다만 이 입력이 Log4j 설정을 변경하는 경로는 아님.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:18-34 — 확인된 요청 처리 경로에 로그 설정 변경 기능이 없음.
+  - 근거: src/main/resources/application.yml:1-6 — JDBC Appender 또는 Log4j 설정 지정이 없음.
+  - 근거: 입력 외부 지표: CVSS 6.6, EPSS 0.97906, KEV 미등재.
+  도구(16): list_files(**/*log4j*) / list_files(**/pom.xml) / list_files(**/*.gradle*) / list_files(**/application*) / search_code(log4j|logging\.config|JDBCAppender|JdbcAppender|DataSource|logback) / list_files(**/*) / read_file(build.gradle:1-120) / read_file(src/main/resources/application.yml:1-120) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(settings.gradle:1-80) / search_code((?i)jdbc|appender|jndi|logging|config|file|upload|endpoint|@PostMapping|@GetMapping|LogManager|System\.setProperty|spring\.profiles|log4j2|log4j\.configuration) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-100) / read_file(src/main/java/com/example/demo/Profile.java:1-100) / list_files(**/*.xml) / list_files(**/*.properties) / list_files(**/*.yaml)
+
+=== CVE-2022-38749|snakeyaml  정답 P3 | 규칙 P4 (우리 코드에서 직접 사용하지 않음) | 에이전트 P4 (conf 0.87)
+  메모: ②에서 멈춤. application.yml을 읽을 때 이 설정 파일이 외부에 노출 되었을 경우 처음에 Spring boot를 읽을 때 취약점에 노출됨.
+  CVSS 6.5 EPSS 0.02199 KEV False 직접사용 0
+  경로: 확인된 경로 없음. Spring Boot가 시작 시 application.yml을 읽는 경로는 있으나, 확인한 컨트롤러의 외부 요청 값이 YAML 파서로 전달되는 경로는 없다.
+  - 근거: build.gradle:5-6,15-16 — Spring Boot 2.6.5와 starter-web을 사용하며, 의존성 주석에 snakeyaml 1.29가 명시돼 있다.
+  - 근거: src/main/java/com/example/demo/DemoApplication.java:6-10 — SpringApplication.run으로 애플리케이션을 시작한다.
+  - 근거: src/main/resources/application.yml:1-6 — YAML 설정 파일이 존재한다.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:18-34 — 확인한 요청 처리 경로는 /hello, /template, /profile이며 YAML 입력을 받거나 파싱하는 코드는 없다.
+  - 근거: build.gradle:1-2 — 분석용 예제로 실제 운영 코드가 아니며 외부에 배포하지 않는다고 명시돼 있다.
+  도구(17): list_files(**/pom.xml) / list_files(**/*.yml) / list_files(**/*.yaml) / list_files(**/*Controller*.java) / list_files(**/build.gradle*) / read_file(build.gradle:1-120) / read_file(src/main/resources/application.yml:1-120) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / list_files(src/main/java/**/*.java) / list_files(**/*Docker*) / search_code((?i)snakeyaml|yaml|spring\.config|@RequestBody|MultipartFile|spring-boot|spring\.cloud|management\.endpoints) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-100) / read_file(src/main/java/com/example/demo/Profile.java:1-100) / list_files(src/main/resources/**) / list_files(**/*.properties) / list_files(**/settings.gradle*) / search_code((?i)@(?:PostMapping|PutMapping|PatchMapping|RequestMapping|GetMapping)|YamlPropertySourceLoader|Yaml|application\.yml|spring\.config|spring\.profiles|configtree|/actuator|@ImportResource)
+
+=== CVE-2022-38751|snakeyaml  정답 P3 | 규칙 P4 (우리 코드에서 직접 사용하지 않음) | 에이전트 P4 (conf 0.91)
+  메모: ②에서 멈춤. application.yml을 읽을 때 이 설정 파일이 외부에 노출 되었을 경우 처음에 Spring boot를 읽을 때 취약점에 노출됨.
+  CVSS 6.5 EPSS 0.02032 KEV False 직접사용 0
+  경로: 확인된 경로 없음. Spring Boot가 시작할 때 application.yml을 읽는 경로는 있지만, 확인한 HTTP 엔드포인트의 요청 값이 YAML 파서로 전달되는 경로는 없다.
+  - 근거: build.gradle:5,16 — Spring Boot 2.6.5와 spring-boot-starter-web을 사용하며, 의존성 주석에 snakeyaml 1.29가 명시돼 있다.
+  - 근거: src/main/java/com/example/demo/DemoApplication.java:3-9 — SpringApplication.run으로 서비스를 시작한다.
+  - 근거: src/main/resources/application.yml:1-6 — 서비스의 YAML 설정 파일이 있다.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:18-34 — 확인된 엔드포인트는 헤더 로깅, 문자열 치환, Profile 객체 바인딩을 수행하며 요청 YAML을 파싱하지 않는다.
+  - 근거: 입력 지표: CVSS 6.5, EPSS 0.02032, KEV 미등재, 수정 버전 1.31.
+  도구(15): list_files(**/*gradle*) / list_files(**/pom.xml) / list_files(**/*yml) / list_files(**/*yaml) / search_code((?i)snakeyaml|yaml\.load|YamlPropertiesFactoryBean|YamlMapFactoryBean|YamlPropertySourceLoader|spring\.config|spring\.cloud\.config) / list_files(**/*.java) / read_file(build.gradle:1-120) / read_file(src/main/resources/application.yml:1-120) / list_files(**/*Docker*) / list_files(**/*.properties) / list_files(**/*README*) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-120) / read_file(src/main/java/com/example/demo/Profile.java:1-120) / search_code(@Request|@PostMapping|@GetMapping|@PutMapping|MultipartFile|RequestBody|ObjectMapper|parse|load|Config|spring\.profiles|spring\.config|Yaml|yaml|application\.yml)
+
+=== CVE-2023-20861|spring-expression  정답 P3 | 규칙 P4 (우리 코드에서 직접 사용하지 않음) | 에이전트 P4 (conf 0.85)
+  메모: ②에서 멈춤. 간접 의존성이라 처음에 Spring boot를 띄울 때 취약점이 발생할 수 있다.
+  CVSS 6.5 EPSS 0.0097 KEV False 직접사용 0
+  경로: 확인된 경로 없음
+  - 근거: build.gradle:5,15-16 — Spring Boot 2.6.5와 spring-boot-starter-web을 사용한다.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:18-34 — 외부 입력을 받는 엔드포인트는 /hello, /template, /profile이며, 확인된 처리 코드에는 사용자 입력을 SpEL 표현식으로 평가하는 호출이 없다.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:24-28 — /template의 입력은 Apache Commons Text의 StringSubstitutor로 처리된다.
+  - 근거: src/main/resources/application.yml:1-6 — 확인된 설정은 H2 콘솔 비활성화와 서버 포트 8080이다.
+  - 근거: 외부 지표: CVSS 6.5, EPSS 0.0097, KEV 미등재.
+  도구(13): list_files(**/*pom.xml) / list_files(**/*.gradle*) / list_files(**/*.java) / list_files(**/*.{yml,yaml,properties}) / read_file(build.gradle:1-120) / read_file(settings.gradle:1-100) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/Profile.java:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-100) / list_files(src/main/resources/**) / search_code(SpEL|spring-expression|EvaluationContext|@Value|@PreAuthorize|@PostAuthorize|@Cacheable|@RequestMapping|@GetMapping|@PostMapping|spring\.thymeleaf|SpringBootApplication|spring-boot) / list_files(**/*) / read_file(src/main/resources/application.yml:1-120)
+
+=== CVE-2023-20883|spring-boot-autoconfigure  정답 P3 | 규칙 P2 (심각도 7.5; 우리 코드에서 직접 사용) | 에이전트 P4 (conf 0.93)
+  메모: ②에서 멈춤. SpringBootAplication 자동 설정이라 자동 설정 과정에서 외부에 노출된 것이 들어올 수 있는 취약점이 있다.
+  CVSS 7.5 EPSS 0.00911 KEV False 직접사용 1
+  경로: 확인된 경로 없음. spring-boot-starter-web으로 MVC 기능은 포함되지만, 이 취약점의 대상인 Welcome Page를 구성할 index.html이나 루트 경로 매핑이 확인되지 않았다. 확인된 외부 요청 경로는 /hello, /template, /profile이며 Welcome Page로 이어지지 않는다.
+  - 근거: build.gradle:1-2 — 분석 대상용 예제 서비스이며 외부에 배포하지 않는다고 명시
+  - 근거: build.gradle:5,16 — Spring Boot 2.6.5 및 spring-boot-starter-web 사용
+  - 근거: src/main/resources/** — 파일 목록에 index.html 등 Welcome Page 리소스 없음
+  - 근거: src/main/resources/application.yml:1-6 — Welcome Page 관련 설정 없음
+  - 근거: src/main/java/com/example/demo/GreetingController.java:18-34 — 확인된 요청 매핑은 /hello, /template, /profile
+  - 근거: 입력 외부 지표 — CVSS 7.5, EPSS 0.00911, KEV 미등재
+  도구(12): list_files(**/*) / search_code(spring-boot|Welcome|welcome|static|index\.html|addViewControllers|WebMvcConfigurer|@Controller|@RestController|server\.|spring\.web|spring\.mvc) / read_file(build.gradle:1-120) / read_file(src/main/resources/application.yml:1-120) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-120) / read_file(src/main/java/com/example/demo/Profile.java:1-120) / read_file(settings.gradle:1-80) / list_files(src/main/resources/**) / list_files(**/index.html) / list_files(**/*Controller*) / search_code(WelcomePage|index|@GetMapping\("/"\)|@RequestMapping\("/"\)|spring\.web\.resources|spring\.mvc\.static-path-pattern|addResourceHandlers|spring\.thymeleaf|spring\.freemarker|spring\.mustache)
+
+=== CVE-2024-12801|logback-core  정답 P3 | 규칙 P4 (우리 코드에서 직접 사용하지 않음) | 에이전트 P4 (conf 0.78)
+  메모: ②에서 멈춤. logback-classic 의 간접 의존성이라 앞의 것의 실행 중 돌아갈 수 있어서 위험함.
+  CVSS 2.4 EPSS 0.00226 KEV False 직접사용 0
+  경로: 확인된 경로 없음
+  - 근거: build.gradle:5,15-18 — Spring Boot 2.6.5와 starter-web을 사용해 프레임워크의 기본 로깅 경로가 존재하지만, 컨트롤러의 로거는 별도로 Log4j API를 사용한다.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:15-21 — /hello의 외부 User-Agent 값은 Log4j 로거에 전달된다. 이 값이 logback-core의 SSRF 관련 기능이나 설정으로 전달되는 경로는 확인되지 않았다.
+  - 근거: src/main/resources/application.yml:1-6 — 확인된 애플리케이션 설정에는 로깅 설정이 없다.
+  - 근거: build.gradle:1-2 — 분석 대상용 예제 서비스이며 외부에 배포하지 않는다고 명시돼 있다.
+  - 근거: 외부 지표: CVSS 2.4, EPSS 0.00226, KEV 미등재
+  도구(14): list_files(**/*logback*) / list_files(**/pom.xml) / list_files(**/build.gradle*) / list_files(**/application*) / search_code(logback|logging\.config|spring-boot-starter-(web|logging)|ConsoleAppender|SocketAppender|Joran|logger\.level) / list_files(**/*) / read_file(build.gradle:1-120) / read_file(src/main/resources/application.yml:1-120) / search_code(@RestController|@Controller|@RequestMapping|@PostMapping|@GetMapping|@RequestBody|@RequestParam|logging|Logger|log\.|System\.setProperty|File|URL|JNDI|jndi|xml|config) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-80) / read_file(src/main/java/com/example/demo/Profile.java:1-80) / read_file(settings.gradle:1-50) / search_code(logging\.config|logback\.configurationFile|<include|<configuration|<if|<insertFromJNDI|<property|<define|<appender|@RequestHeader|@RequestParam|log\.info|log\.error)
+
+=== CVE-2024-22243|spring-web  정답 P1 | 규칙 P2 (심각도 8.1; 우리 코드에서 직접 사용) | 에이전트 P4 (conf 0.86)
+  메모: ④에서 멈춤. RestController가 포함되어 요청이 오면 전부 이 어노테이션이 온 것들에서 요청을 받으므로 외부에게 취약하다.
+  CVSS 8.1 EPSS 0.03967 KEV False 직접사용 5
+  경로: 확인된 경로 없음. 외부 요청은 Spring MVC 컨트롤러에 도달하지만, 확인한 코드에는 요청 값으로 URI를 구성해 리다이렉트하거나 외부 서버에 요청하는 경로가 없다. 배포 환경의 별도 경로는 확인하지 못했다.
+  - 근거: build.gradle:5,16: Spring Boot 2.6.5와 spring-boot-starter-web 사용. 입력된 대상 버전은 spring-web 5.3.17.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:18-34: /hello는 User-Agent를 기록하고, /template은 text를 문자열 치환에 사용하며, /profile은 요청 값을 Profile에 바인딩한다. 세 경로 모두 URI 구성·리다이렉트·외부 HTTP 요청을 하지 않는다.
+  - 근거: src/main/java/com/example/demo/Profile.java:3-8: 바인딩 대상 필드는 name뿐이다.
+  - 근거: src/main/resources/application.yml:1-6: 확인 가능한 설정은 H2 콘솔 비활성화와 서버 포트다.
+  - 근거: 외부 지표: CVSS 8.1, EPSS 0.03967, KEV 미등재.
+  도구(8): list_files(**/*) / search_code(UriComponentsBuilder|fromHttpRequest|fromUriString|ServletUriComponentsBuilder|ForwardedHeader|X-Forwarded|redirect:|RestTemplate|WebClient|spring-web|spring-boot|server\.forward-headers|forward-headers-strategy) / read_file(build.gradle:1-100) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-100) / read_file(src/main/java/com/example/demo/Profile.java:1-100) / read_file(src/main/resources/application.yml:1-120) / read_file(settings.gradle:1-80)
+
+=== CVE-2024-22262|spring-web  정답 P1 | 규칙 P2 (심각도 8.1; 우리 코드에서 직접 사용) | 에이전트 P4 (conf 0.88)
+  메모: ④에서 멈춤. RestController가 포함되어 요청이 오면 전부 이 어노테이션이 온 것들에서 요청을 받으므로 외부에게 취약하다.
+  CVSS 8.1 EPSS 0.01191 KEV False 직접사용 5
+  경로: 확인된 경로 없음. 외부 요청은 /hello, /template, /profile에 도달하지만, 확인한 코드에는 요청 URL의 호스트를 파싱해 신뢰 여부를 검사하는 경로가 없다. Spring Web의 요청 처리 자체는 사용하지만, 취약한 호스트 검증 기능으로 입력이 이어지는 경로는 확인되지 않았다.
+  - 근거: build.gradle:2: 분석 대상은 실제 운영 코드가 아니며 외부에 배포하지 않는다고 명시
+  - 근거: build.gradle:5-6,16: Spring Boot 2.6.5와 spring-boot-starter-web 사용
+  - 근거: src/main/java/com/example/demo/GreetingController.java:18-34: 외부 입력을 받는 세 엔드포인트는 헤더 로깅, 문자열 치환, 객체 바인딩을 수행하며 URL 호스트 검증은 수행하지 않음
+  - 근거: src/main/resources/application.yml:1-6: 확인된 설정은 H2 콘솔 비활성화와 서버 포트뿐임
+  - 근거: 입력 외부 지표: CVSS 8.1, EPSS 0.01191, KEV 미등재, 수정 버전 5.3.34
+  도구(9): list_files(**/*) / search_code(UriComponentsBuilder|fromHttpRequest|fromUriString|fromHttpUrl|allowedOrigins|origin|Host|Forwarded|X-Forwarded|redirect|Url|URL|URI) / search_code(spring-web|spring-boot|forward-headers-strategy|server\.forward|tomcat|proxy|security) / read_file(build.gradle:1-120) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-100) / read_file(src/main/java/com/example/demo/Profile.java:1-100) / read_file(src/main/resources/application.yml:1-120) / read_file(settings.gradle:1-60)
+
+=== CVE-2024-23672|tomcat-embed-websocket  정답 P3 | 규칙 P4 (우리 코드에서 직접 사용하지 않음) | 에이전트 P4 (conf 0.82)
+  메모: ②에서 멈춤. 간접 의존성이라 내장 톰캣 구동 시 취약점이 발생할 수 있다.
+  CVSS 6.3 EPSS 0.02313 KEV False 직접사용 0
+  경로: 확인된 경로 없음. Spring Boot의 웹 서버를 통해 HTTP 요청은 받지만, 확인한 컨트롤러에는 WebSocket 엔드포인트가 없어 외부 요청이 취약한 WebSocket 기능에 닿는 경로를 확인하지 못했다.
+  - 근거: build.gradle:5,16 — Spring Boot 2.6.5와 spring-boot-starter-web을 사용한다. tomcat-embed-websocket의 실제 해석 버전은 빌드 파일에 명시돼 있지 않다.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:12-34 — 확인된 요청 경로는 /hello, /template, /profile의 HTTP GET 처리다.
+  - 근거: src/main/java/com/example/demo/DemoApplication.java:6-10 — Spring Boot 애플리케이션으로 실행한다.
+  - 근거: src/main/resources/application.yml:5-6 — 서버 포트는 8080이다.
+  - 근거: build.gradle:1-2 — 분석용 예제이며 외부에 배포하지 않는다고 주석에 기재돼 있다. 실제 배포 상태를 검증한 근거는 아니다.
+  - 근거: 입력 지표: CVSS 6.3, EPSS 0.02313, KEV 미등재
+  도구(16): list_files(**/*gradle*) / list_files(**/pom.xml) / list_files(**/*application*) / search_code(WebSocket|websocket|tomcat|spring-boot|server\.port|@RestController|@Controller) / list_files(src/**) / read_file(build.gradle:1-120) / read_file(src/main/resources/application.yml:1-120) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-120) / read_file(settings.gradle:1-100) / search_code(@ServerEndpoint|@EnableWebSocket|WebSocketHandler|WebSocketConfigurer|WebSocketMessageBrokerConfigurer|spring-boot-starter-websocket|ServletServerContainerFactoryBean|ServerEndpointExporter|Upgrade:|/ws|WebSocket) / search_code(@GetMapping|@PostMapping|@RequestMapping|@RestController|server:|port:|enabled:|spring-boot-starter|org\.springframework\.boot|tomcat-embed) / list_files(**/*.java) / list_files(**/*.yml) / list_files(**/*.properties) / read_file(src/main/java/com/example/demo/Profile.java:1-80)
+
+=== CVE-2024-38819|spring-webmvc  정답 P1 | 규칙 P2 (악용 가능성 점수 0.565 (기준 0.1 이상); 심각도 7.5; 우리 코드에서 직접 사용하지 않음; 수정 버전 없음) | 에이전트 P2 (conf 0.66)
+  메모: ④에서 멈춤. RestController가 포함되어 요청이 오면 전부 이 어노테이션이 온 것들에서 요청을 받으므로 외부에게 취약하다.
+  CVSS 7.5 EPSS 0.56463 KEV False 직접사용 0
+  경로: 확인된 경로 없음. spring-boot-starter-web을 통해 Spring MVC가 포함되지만, 확인한 컨트롤러의 외부 입력은 정적 리소스 경로로 전달되지 않는다. 배포 환경에서 정적 리소스 처리 기능이 공격 가능한지는 확인되지 않았다.
+  - 근거: build.gradle:5,15-16 — Spring Boot 2.6.5와 spring-boot-starter-web을 사용한다.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:18-34 — 확인된 요청 경로는 /hello, /template, /profile이며 정적 리소스 경로를 구성하는 코드는 없다.
+  - 근거: src/main/resources/application.yml:1-6 — 확인된 설정은 H2 콘솔 비활성화와 서버 포트 8080이다.
+  - 근거: build.gradle:1-2 — 파일 주석에는 예제 서비스이며 외부에 배포하지 않는다고 적혀 있으나, 실제 배포 상태를 검증하는 근거는 아니다.
+  - 근거: 외부 지표: CVSS 7.5, EPSS 0.56463, KEV 미등재. 입력의 수정 버전 목록은 비어 있다.
+  도구(15): list_files(**/pom.xml) / list_files(**/build.gradle*) / list_files(**/*Controller*.java) / list_files(**/application*) / search_code(spring-webmvc|spring-boot-starter-web|ResourceHandler|addResourceHandlers|spring.web.resources|spring.mvc.static-path-pattern) / read_file(build.gradle:1-120) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/resources/application.yml:1-120) / list_files(**/*) / search_code(static|resources|WebMvc|RequestMapping|GetMapping|PostMapping|Path|forward|redirect|spring\.mvc|server\.|tomcat|war|jar|bootJar|bootWar) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-80) / read_file(src/main/java/com/example/demo/Profile.java:1-80) / read_file(settings.gradle:1-80) / list_files(src/main/resources/**) / search_code(RouterFunctions|resources\(|ResourceHttpRequestHandler|addResourceHandlers|ResourceHandlerRegistry|EnableWebMvc|WebMvcConfigurer|spring\.web\.resources|spring\.mvc\.static|spring\.webflux|spring-boot-starter-webflux)
+
+=== CVE-2024-38820|spring-context  정답 P3 | 규칙 P4 (우리 코드에서 직접 사용하지 않음; 수정 버전 없음) | 에이전트 P4 (conf 0.82)
+  메모: ②에서 멈춤. 어플리케이션 구동 과정에서 취약점이 있는 파일들을 같이 돌릴 수 있음.
+  CVSS 5.3 EPSS 0.00617 KEV False 직접사용 0
+  경로: GET /profile의 요청 값이 @ModelAttribute Profile 바인딩에 도달한다. 다만 Profile에는 name 필드만 있고, 확인한 코드에는 바인딩 필드 제한 설정이 없어 이 예외를 이용한 공격 경로는 확인되지 않았다.
+  - 근거: build.gradle:5-6,15-16 — Spring Boot 2.6.5와 spring-boot-starter-web을 사용한다.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:30-34 — /profile에서 외부 요청 값을 @ModelAttribute Profile로 받는다.
+  - 근거: src/main/java/com/example/demo/Profile.java:3-8 — 바인딩 대상에는 name 필드만 있다.
+  - 근거: src/main/resources/application.yml:1-6 — 확인한 설정에는 바인딩 필드 제한 설정이 없다.
+  - 근거: 입력 지표: CVSS 5.3, EPSS 0.00617, KEV 미등재, 수정 버전 목록 비어 있음
+  도구(14): list_files(**/pom.xml) / list_files(**/*.gradle*) / list_files(**/application*) / search_code(@Controller|@RestController|DataBinder|@InitBinder|allowedFields|disallowedFields|setDeclarativeBinding|spring-context) / read_file(build.gradle:1-120) / read_file(src/main/resources/application.yml:1-120) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / list_files(**/*.java) / list_files(**/*.yml) / read_file(src/main/java/com/example/demo/Profile.java:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-100) / search_code(@InitBinder|WebDataBinder|DataBinder|setAllowedFields|setDisallowedFields|allowedFields|disallowedFields|@ModelAttribute|@RequestMapping|@PostMapping|@PutMapping|@PatchMapping|security|setAutoGrow|bind\() / list_files(**/gradle.lockfile) / list_files(**/README*)
+
+=== CVE-2025-48924|commons-lang3  정답 P3 | 규칙 P4 (우리 코드에서 직접 사용하지 않음) | 에이전트 P4 (conf 0.58)
+  메모: ②에서 멈춤. commons-text 1.9 의 간접 의존성이라 commons-text 실행 중 돌아갈 수 있어서 위험함.
+  CVSS 6.5 EPSS 0.02632 KEV False 직접사용 0
+  경로: GET /template의 text 값은 Commons Text의 StringSubstitutor로 전달된다. 다만 이 경로가 commons-lang3의 취약한 재귀 처리까지 도달하는지는 확인되지 않았다.
+  - 근거: build.gradle:19: org.apache.commons:commons-text:1.9 선언. build.gradle:15-22에는 commons-lang3 직접 선언이 없다.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:25-27: 외부 요청의 text를 StringSubstitutor.createInterpolator().replace(text)에 전달한다.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:30-34, src/main/java/com/example/demo/Profile.java:3-8: /profile은 이름 필드만 바인딩하고 반환한다.
+  - 근거: 외부 지표: CVSS 6.5, EPSS 0.02632, KEV 미등재, 수정 버전 3.18.0.
+  도구(17): list_files(**/*gradle*) / list_files(**/pom.xml) / list_files(**/application*) / search_code(commons-lang3|StringUtils|ArrayUtils|ClassUtils|ObjectUtils|RandomStringUtils|SerializationUtils|ToStringBuilder|EqualsBuilder|HashCodeBuilder|Lang3) / list_files(src/main/**/*) / read_file(build.gradle:1-120) / read_file(src/main/resources/application.yml:1-120) / list_files(**/*lock*) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/Profile.java:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-120) / search_code(commons|lang3|jackson|@Request|@GetMapping|@PostMapping|Json|Profile|recursive|deserialize) / list_files(**/*.java) / list_files(**/*.properties) / list_files(**/*.yml) / list_files(**/*.md) / search_code(ClassUtils\.getClass|StringUtils\.replaceEach|StringSubstitutor|StringLookup|spring\.mvc|server\.|commons-lang3)
+
+=== CVE-2025-53506|tomcat-embed-core  정답 P1 | 규칙 P3 (심각도 7.5; 우리 코드에서 직접 사용하지 않음) | 에이전트 P4 (conf 0.78)
+  메모: ④에서 멈춤. 모든 HTTP 요청을 받기에 가장 취약하다.
+  CVSS 7.5 EPSS 0.02129 KEV False 직접사용 0
+  경로: 확인된 경로 없음. spring-boot-starter-web을 통해 내장 웹 서버가 요청을 처리하지만, 이 취약점의 전제인 HTTP/2 활성화나 외부 배포는 확인되지 않았다. 컨트롤러의 요청 값은 HTTP/2 스트림 처리보다 뒤에서 사용된다.
+  - 근거: build.gradle:1-2 — 예제 서비스이며 외부에 배포하지 않는다고 명시
+  - 근거: build.gradle:5,15-16 — Spring Boot 2.6.5와 spring-boot-starter-web 사용
+  - 근거: src/main/java/com/example/demo/DemoApplication.java:6-9 — Spring Boot 애플리케이션 시작
+  - 근거: src/main/resources/application.yml:5-6 — 서버 포트 8080 설정; 파일에 HTTP/2 활성화 설정 없음
+  - 근거: src/main/java/com/example/demo/GreetingController.java:18-33 — HTTP 엔드포인트는 있으나 요청 값은 컨트롤러에서 처리
+  - 근거: 입력 외부 지표 — CVSS 7.5, EPSS 0.02129, KEV 미등재, 수정 버전 9.0.107
+  도구(15): list_files(**/pom.xml) / list_files(**/*application*.yml) / list_files(**/*application*.properties) / search_code(http2|HTTP2|Http2|tomcat|Tomcat|server\.port|server\.ssl) / list_files(**/*gradle*) / list_files(**/*.java) / list_files(**/*.yml) / read_file(src/main/resources/application.yml:1-120) / list_files(**/Dockerfile*) / read_file(build.gradle:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-120) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/Profile.java:1-120) / list_files(**/*) / search_code(server:|http2:|enabled:|spring-boot-starter|WebServerFactory|Http2Protocol|ForwardedHeader)
+
+=== CVE-2025-55668|tomcat-embed-core  정답 P1 | 규칙 P4 (우리 코드에서 직접 사용하지 않음) | 에이전트 P4 (conf 0.78)
+  메모: ④에서 멈춤. 모든 HTTP 요청을 받기에 가장 취약하다.
+  CVSS 6.5 EPSS 0.0086 KEV False 직접사용 0
+  경로: 확인된 경로 없음. HTTP 요청은 Spring Boot 웹 서비스에 도달할 수 있지만, 확인한 컨트롤러에서는 세션 생성·인증 기능으로 이어지는 경로가 없다.
+  - 근거: build.gradle:5,15-16 — Spring Boot 2.6.5와 spring-boot-starter-web을 사용한다. Tomcat 직접 사용 코드가 없어도 웹 서버를 통한 간접 사용 경로는 있다.
+  - 근거: src/main/resources/application.yml:5-6 — 서버 포트가 8080으로 설정되어 있다.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:17-34 — 확인된 외부 요청 경로는 /hello, /template, /profile이며, 이 코드에는 세션 또는 로그인 처리가 없다.
+  - 근거: build.gradle:1-2 — 파일에는 분석 대상 예제이며 외부에 배포하지 않는다고 명시되어 있다. 실제 실행·배포 상태는 별도로 확인되지 않았다.
+  - 근거: 입력 지표: CVSS 6.5, EPSS 0.0086, KEV 미등재; 탐지 버전 9.0.60, 수정 버전 9.0.106.
+  도구(16): list_files(**/pom.xml) / list_files(**/*Security*.java) / list_files(**/application*.yml) / list_files(**/application*.properties) / list_files(**/build.gradle*) / read_file(build.gradle:1-120) / read_file(src/main/resources/application.yml:1-120) / list_files(**/*.java) / search_code(session|Session|JSESSIONID|SecurityFilterChain|WebSecurity|HttpSecurity|login|authenticate|Authentication|tomcat|server.servlet|cookie|forward|redirect) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-100) / read_file(src/main/java/com/example/demo/Profile.java:1-100) / list_files(**/*gradle*) / list_files(**/Dockerfile*) / list_files(**/*.xml) / list_files(**/*.yml)
+
+=== CVE-2026-10532|logback-core  정답 P3 | 규칙 P4 (우리 코드에서 직접 사용하지 않음) | 에이전트 P4 (conf 0.83)
+  메모: ②에서 멈춤. logback-classic 의 간접 의존성이라 앞의 것의 실행 중 돌아갈 수 있어서 위험함.
+  CVSS 2.9 EPSS 0.0037 KEV False 직접사용 0
+  경로: 확인된 경로 없음. Spring Boot의 기본 로깅을 통해 Logback이 간접 사용될 수 있지만, 확인한 설정과 코드에는 취약한 객체 역직렬화 기능을 활성화하거나 외부 입력을 그 기능에 전달하는 경로가 없다. /hello의 요청 헤더는 Log4j 로거로 전달된다.
+  - 근거: build.gradle:5,15-18 — Spring Boot 2.6.5와 starter-web을 선언하며, Logback 버전을 직접 고정하지 않는다. Log4j 의존성은 별도로 선언한다.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:15-20 — /hello의 User-Agent를 Log4j 로거에 기록한다.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:24-34 — 나머지 요청 처리 경로는 문자열 치환과 객체 바인딩이다.
+  - 근거: src/main/resources/application.yml:1-6 — 확인된 설정은 H2 콘솔과 서버 포트뿐이다.
+  - 근거: 외부 지표: CVSS 2.9, EPSS 0.0037, KEV 미등재.
+  도구(16): list_files(**/*gradle*) / list_files(**/pom.xml) / list_files(**/*logback*) / list_files(**/application*) / search_code(HardenedObjectInputStream|SocketReceiver|ServerSocketReceiver|SocketAppender|Logback|logback|logging\.config) / read_file(build.gradle:1-120) / read_file(src/main/resources/application.yml:1-120) / list_files(src/main/**/*.java) / list_files(src/main/resources/**) / list_files(**/Dockerfile*) / list_files(**/*.yml) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-100) / read_file(settings.gradle:1-80) / list_files(**/*) / search_code(@(?:PostMapping|GetMapping|RequestMapping)|Logger|logger\.|ObjectInputStream|Socket|logging|spring-boot-starter)
+
+=== CVE-2026-40973|spring-boot  정답 P2 | 규칙 P2 (심각도 7.0; 우리 코드에서 직접 사용; 수정 버전 없음) | 에이전트 P4 (conf 0.82)
+  메모: ③에서 멈춤. Spring boot가 run할 때 내장 톰캣을 돌리는 과정에서 내부가 이미 노출되었을 경우 취약점 발생
+  CVSS 7.0 EPSS 0.00136 KEV False 직접사용 1
+  경로: 확인된 경로 없음
+  - 근거: build.gradle:1-2 — 분석용 예제이며 실제 운영 코드가 아니고 외부에 배포하지 않는다고 명시
+  - 근거: build.gradle:5,16 — Spring Boot 2.6.5와 spring-boot-starter-web 사용
+  - 근거: src/main/java/com/example/demo/DemoApplication.java:6-9 — SpringApplication으로 서비스 시작
+  - 근거: src/main/java/com/example/demo/GreetingController.java:18-34 — 확인된 HTTP 요청 경로는 헤더 로깅, 문자열 치환, 객체 바인딩이며 임시 디렉터리 경로를 받는 코드는 없음
+  - 근거: src/main/resources/application.yml:1-6 — 임시 디렉터리 설정은 없고 서버 포트 8080만 설정
+  - 근거: 외부 지표: CVSS 7.0, EPSS 0.00136, KEV 미등재
+  도구(8): list_files(**/*) / search_code(SpringApplication|spring-boot|server\.|multipart|java\.io\.tmpdir|tmpdir|Tomcat|Undertow|Jetty|Dockerfile|bootRun) / read_file(build.gradle:1-120) / read_file(src/main/resources/application.yml:1-120) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-100) / read_file(src/main/java/com/example/demo/Profile.java:1-120) / read_file(settings.gradle:1-60)
+
+=== CVE-2026-41848|spring-core  정답 P2 | 규칙 P4 (우리 코드에서 직접 사용하지 않음; 수정 버전 없음) | 에이전트 P4 (conf 0.72)
+  메모: ③에서 멈춤. 모든 Spring 모듈의 기반으로 어떠한 요청이 들어와도 관련 Spring 모듈이 동작하기에 매우 취약하다.
+  CVSS 3.7 EPSS 0.00335 KEV False 직접사용 0
+  경로: 확인된 경로 없음. 외부 요청 URL은 Spring MVC 라우팅에 도달하지만, 이 서비스의 요청 경로가 취약한 AntPathMatcher 처리로 이어지는지는 확인되지 않았다.
+  - 근거: build.gradle:5: Spring Boot 플러그인 버전 2.6.5
+  - 근거: build.gradle:16: spring-boot-starter-web 사용
+  - 근거: src/main/java/com/example/demo/GreetingController.java:18-33: /hello, /template, /profile의 고정 경로로 요청을 받음
+  - 근거: src/main/resources/application.yml:1-6: 경로 매칭 방식에 관한 명시적 설정 없음
+  - 근거: build.gradle:1-2: 분석 대상용 예제 서비스이며 외부에 배포하지 않는다고 명시
+  - 근거: 입력 지표: CVSS 3.7, EPSS 0.00335, KEV 미등재, 수정 버전 목록 비어 있음
+  도구(8): list_files(**/*) / search_code(AntPathMatcher|PathMatcher|pathmatch|matching-strategy|spring-boot|spring-core|spring-webmvc|SecurityFilterChain|WebSecurityConfigurerAdapter) / read_file(build.gradle:1-120) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-120) / read_file(src/main/resources/application.yml:1-120) / read_file(src/main/java/com/example/demo/Profile.java:1-120) / read_file(settings.gradle:1-80)
+
+=== CVE-2026-41853|spring-webmvc  정답 P1 | 규칙 P4 (우리 코드에서 직접 사용하지 않음; 수정 버전 없음) | 에이전트 P4 (conf 0.7)
+  메모: ④에서 멈춤. RestController가 포함되어 요청이 오면 전부 이 어노테이션이 온 것들에서 요청을 받으므로 외부에게 취약하다.
+  CVSS 5.3 EPSS 0.00186 KEV False 직접사용 0
+  경로: 확인된 경로 없음
+  - 근거: build.gradle:5,16 — Spring Boot 2.6.5와 spring-boot-starter-web을 사용한다. 애플리케이션 코드가 spring-webmvc를 직접 호출하지 않아도 MVC 요청 처리 경로에 포함될 수 있다.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:18-34 — 확인된 외부 요청 경로는 GET /hello, /template, /profile이며, multipart 업로드를 받는 핸들러는 없다.
+  - 근거: src/main/resources/application.yml:1-6 — multipart 기능을 명시적으로 설정하거나 비활성화한 항목은 없다.
+  - 근거: build.gradle:1-2 — 분석 대상 예제이며 외부에 배포하지 않는다고 명시돼 있다.
+  - 근거: 입력 지표: CVSS 5.3, EPSS 0.00186, KEV 미등재, 수정 버전 목록 비어 있음
+  도구(14): list_files(**/*gradle*) / list_files(**/pom.xml) / list_files(**/*application*) / search_code(MultipartFile|MultipartHttpServletRequest|@RequestPart|multipart|spring-webmvc|spring-boot-starter-web) / read_file(build.gradle:1-120) / read_file(src/main/resources/application.yml:1-120) / list_files(src/main/java/**/*.java) / list_files(src/main/resources/**) / list_files(**/Dockerfile*) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-120) / read_file(src/main/java/com/example/demo/Profile.java:1-120) / list_files(src/test/**/*.java) / search_code(MultipartResolver|MultipartConfig|@PostMapping|@RequestMapping|@GetMapping|@ModelAttribute|@RequestBody|consumes|forward|proxy|filter|servlet)
+
+=== CVE-2026-49844|log4j-api  정답 P1 | 규칙 P3 (우리 코드에서 직접 사용) | 에이전트 P4 (conf 0.83)
+  메모: ④에서 멈춤. build.gradle에 직접 선언되어 있고 Controller에서  LogManager, Logger 를 가져오고 :20 에서 요청 헤더 값을 기록하는 과정에서 취약점 발생.
+  CVSS 6.3 EPSS 0.00595 KEV False 직접사용 2
+  경로: 확인된 경로 없음. /hello의 외부 User-Agent 헤더는 로그에 전달되지만, 취약점의 전제인 비유한 부동소수점 값의 MapMessage JSON 직렬화로 이어지는 코드는 확인되지 않음.
+  - 근거: build.gradle:17-18: log4j-core와 log4j-api를 각각 2.14.1로 선언
+  - 근거: src/main/java/com/example/demo/GreetingController.java:18-21: /hello가 User-Agent 문자열을 일반 매개변수 로그로 기록하며 MapMessage를 생성하지 않음
+  - 근거: src/main/java/com/example/demo/GreetingController.java:30-34, src/main/java/com/example/demo/Profile.java:3-8: /profile의 요청 바인딩 대상은 문자열 name
+  - 근거: src/main/resources/application.yml:1-6: 확인된 설정에는 MapMessage JSON 로깅 설정이 없음
+  - 근거: 외부 지표: CVSS 6.3, EPSS 0.00595, KEV 미등재
+  도구(8): list_files(**/*) / search_code(MapMessage|JsonLayout|log4j|GreetingController|log\.info|log\.error|Logger|ObjectMapper|Double|Float) / read_file(build.gradle:1-120) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/resources/application.yml:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-120) / read_file(src/main/java/com/example/demo/Profile.java:1-120) / read_file(settings.gradle:1-80)
+
+=== CVE-2026-77310|jackson-databind  정답 P1 | 규칙 P4 (우리 코드에서 직접 사용하지 않음) | 에이전트 P4 (conf 0.91)
+  메모: ④에서 멈춤. 컨트롤러의 세 엔드포인트는 모두 GET이라 악성 요청을 쉽게 읽을 수 있어 취약하다.
+  CVSS 5.3 EPSS 0.00313 KEV False 직접사용 0
+  경로: 확인된 경로 없음. 웹 의존성에 Jackson이 포함되지만, 확인된 요청 처리 경로에는 JSON을 InetAddress로 역직렬화하는 기능이 없다.
+  - 근거: build.gradle:5,16 — Spring Boot 2.6.5와 spring-boot-starter-web을 사용하며, 웹 의존성에 Jackson 2.13.x가 포함된다고 명시되어 있다.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:18-34 — 확인된 세 엔드포인트는 헤더 문자열, 쿼리 문자열, Profile 모델 속성을 받는다. JSON 요청 본문을 받는 엔드포인트는 없다.
+  - 근거: src/main/java/com/example/demo/Profile.java:3-7 — Profile의 속성은 String name뿐이다.
+  - 근거: build.gradle:1-2 — 빌드 파일은 분석 대상 예제이며 외부에 배포하지 않는다고 명시한다.
+  - 근거: 입력 외부 지표 — CVSS 5.3, EPSS 0.00313, KEV 미등재.
+  도구(18): list_files(**/*Controller*.java) / list_files(**/*.{yml,yaml,properties}) / list_files(**/pom.xml) / list_files(**/*.gradle*) / search_code(InetAddress|JsonCreator|ObjectMapper|@RequestBody|jackson|spring-boot-starter-web) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(build.gradle:1-120) / list_files(src/**) / list_files(**/Dockerfile*) / search_code(@RestController|@Controller|@RequestMapping|@PostMapping|@GetMapping|@PutMapping|@PatchMapping|@RequestParam|@ModelAttribute|@RequestBody|Json|Inet|Address|spring\.jackson|server\.) / list_files(**/*.java) / list_files(**/*application*) / read_file(src/main/java/com/example/demo/Profile.java:1-120) / search_code(jackson-databind|jackson-bom|com\.fasterxml|HttpMessageConverter|ObjectMapper|InetAddress|@RequestBody|@Json|spring\.mvc|spring\.jackson|bootRun) / read_file(src/main/resources/application.yml:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-120) / read_file(settings.gradle:1-80) / list_files(**/*lock*)
+
+=== CVE-2026-91776|jackson-databind  정답 P1 | 규칙 P3 (심각도 7.5; 우리 코드에서 직접 사용하지 않음) | 에이전트 P4 (conf 0.85)
+  메모: ④에서 멈춤. 컨트롤러의 세 엔드포인트는 모두 GET이라 악성 요청을 쉽게 읽을 수 있어 취약하다.
+  CVSS 7.5 EPSS 0.00487 KEV False 직접사용 0
+  경로: 확인된 경로 없음. 웹 스타터를 통해 Jackson이 포함되지만, 확인된 요청 경로에는 JSON 역직렬화나 다형성 타입 ID를 처리하는 엔드포인트가 없다. /profile의 요청 값은 @ModelAttribute로 바인딩된다.
+  - 근거: build.gradle:5,15-16 — Spring Boot 2.6.5와 spring-boot-starter-web 선언. Jackson은 웹 프레임워크 의존성으로 포함됨.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:18-34 — 확인된 엔드포인트는 /hello, /template, /profile이며 JSON 요청 본문을 받지 않음. /profile은 @ModelAttribute를 사용함.
+  - 근거: src/main/java/com/example/demo/Profile.java:3-8 — Profile에는 문자열 name 필드만 있음.
+  - 근거: src/main/resources/application.yml:1-6 — 확인된 설정에 Jackson 다형성 역직렬화 활성화 설정은 없음.
+  - 근거: build.gradle:1-2 — 프로젝트 주석에는 분석용 예제이며 외부에 배포하지 않는다고 명시됨. 실제 배포 상태를 독립적으로 검증한 근거는 아님.
+  - 근거: 입력 지표: CVSS 7.5, EPSS 0.00487, KEV 미등재
+  도구(8): list_files(**/*) / search_code(jackson|ObjectMapper|JsonTypeInfo|EnableWebMvc|spring\.http|spring\.mvc|MappingJackson|RestController|RequestBody|TypeIdResolver|defaultTyping) / read_file(build.gradle:1-120) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/Profile.java:1-120) / read_file(src/main/resources/application.yml:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-120) / read_file(settings.gradle:1-60)
