@@ -62,6 +62,16 @@ PYTHONPATH=src python -m sbom_agent.cli eval --results out/results.json --gold e
 | 선언만 하고 쓰지 않는 라이브러리 | 심각도는 높지만 실제 위험은 낮음 |
 | 개발용 데이터베이스, 웹 콘솔 꺼짐 | 설정으로 공격 경로 차단 |
 
+의존성별 의도 (출제 의도는 여기에만 적고 `sample-app/` 안에는 주석으로 남기지 않는다. 에이전트가 읽는 파일에 정답 힌트가 섞이지 않게 하기 위해서다.)
+
+| 의존성 | 의도 |
+| --- | --- |
+| spring-boot-starter-web 2.6.5 | spring-beans 5.3.17, snakeyaml 1.29, jackson 2.13.x, 내장 Tomcat 9.0.60 이 함께 들어온다 |
+| log4j-core / log4j-api 2.14.1 | 코드에서 사용자 입력(요청 헤더)을 직접 로그에 기록한다 |
+| commons-text 1.9 | 코드에서 사용자 입력으로 문자열 치환을 한다 |
+| commons-collections 3.2.1 | 선언만 하고 코드에서 쓰지 않는다 |
+| h2 1.4.200 (runtimeOnly) | 로컬 개발용이며 웹 콘솔은 꺼져 있다 |
+
 ## 판정 기준
 
 정답 작성, 규칙 판정, 에이전트 지시문이 모두 아래 기준 하나를 쓴다. 에이전트 지시문은 이 구간을 그대로 읽어 간다(`src/sbom_agent/criteria.py`).

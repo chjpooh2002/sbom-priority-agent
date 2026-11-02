@@ -1,28 +1,28 @@
 {
   "_설명": "정답 작성용 시트에 넣는 라이브러리별 사용 방식. 빌드 파일·코드·설정·의존성 트리(gradlew dependencies --configuration runtimeClasspath)로 확인한 사실만 적고 판정은 넣지 않는다. 경로는 sample-app 기준.",
   "log4j-core": [
-    "build.gradle:17 에서 직접 선언(2.14.1).",
-    "GreetingController.java:4-5,15 에서 log4j-api 의 LogManager/Logger 를 가져오고, :19-20 에서 /hello 요청의 User-Agent 헤더 값을 log.info 의 인자로 기록한다.",
+    "build.gradle:15 에서 직접 선언(2.14.1).",
+    "GreetingController.java:4-5,15 에서 log4j-api 의 LogManager/Logger 를 가져오고, :18-19 에서 /hello 요청의 User-Agent 헤더 값을 log.info 의 인자로 기록한다.",
     "실행 클래스패스에는 spring-boot-starter-logging 을 거쳐 들어온 log4j-to-slf4j 2.17.2 와 logback-classic 1.2.11 도 함께 있다. 저장소에 log4j2 설정 파일은 없다. LogManager 가 log4j-core 와 log4j-to-slf4j 중 어느 구현에 연결되는지는 저장소 파일만으로는 확인되지 않는다."
   ],
   "log4j-api": [
-    "build.gradle:18 에서 직접 선언(2.14.1). log4j-to-slf4j 2.17.2 가 요구하는 2.17.2 대신 2.14.1 로 해석된다.",
-    "GreetingController.java:4-5 에서 LogManager, Logger 를 가져오고 :20 에서 요청 헤더 값을 기록한다."
+    "build.gradle:16 에서 직접 선언(2.14.1). log4j-to-slf4j 2.17.2 가 요구하는 2.17.2 대신 2.14.1 로 해석된다.",
+    "GreetingController.java:4-5 에서 LogManager, Logger 를 가져오고 :19 에서 요청 헤더 값을 기록한다."
   ],
   "commons-text": [
-    "build.gradle:19 에서 직접 선언(1.9).",
-    "GreetingController.java:25-27 에서 /template 의 요청 파라미터 text 를 StringSubstitutor.createInterpolator().replace() 에 그대로 넘긴다."
+    "build.gradle:17 에서 직접 선언(1.9).",
+    "GreetingController.java:23-25 에서 /template 의 요청 파라미터 text 를 StringSubstitutor.createInterpolator().replace() 에 그대로 넘긴다."
   ],
   "commons-lang3": [
     "commons-text 1.9 의 간접 의존성이다(3.11 이 요청되고 3.12.0 으로 해석).",
     "코드에서 org.apache.commons.lang3 를 가져오는 곳은 없다."
   ],
   "commons-collections": [
-    "build.gradle:20 에서 직접 선언(3.2.1).",
+    "build.gradle:18 에서 직접 선언(3.2.1).",
     "코드에서 org.apache.commons.collections 를 가져오는 곳이 없고, ObjectInputStream 등 자바 직렬화를 쓰는 코드도 없다."
   ],
   "h2": [
-    "build.gradle:21 에서 runtimeOnly 로 선언(1.4.200). 코드에서 org.h2 를 가져오는 곳은 없다.",
+    "build.gradle:19 에서 runtimeOnly 로 선언(1.4.200). 코드에서 org.h2 를 가져오는 곳은 없다.",
     "application.yml:2-4 에서 spring.h2.console.enabled=false 로 설정돼 있다. datasource 설정이 없고, 클래스패스에 spring-jdbc 가 없다."
   ],
   "snakeyaml": [
@@ -47,7 +47,7 @@
   ],
   "spring-webmvc": [
     "spring-boot-starter-web 을 거쳐 들어온 간접 의존성이다(5.3.17). GreetingController 의 @RestController 가 /hello, /template, /profile(모두 GET)을 처리한다.",
-    "/profile 은 요청 값을 @ModelAttribute 로 Profile 객체에 바인딩한다(GreetingController.java:31-33). 정적 리소스 설정과 뷰 템플릿은 없다."
+    "/profile 은 요청 값을 @ModelAttribute 로 Profile 객체에 바인딩한다(GreetingController.java:28-30). 정적 리소스 설정과 뷰 템플릿은 없다."
   ],
   "spring-web": [
     "spring-boot-starter-web 을 거쳐 들어온 간접 의존성이다(5.3.17).",
@@ -55,7 +55,7 @@
   ],
   "spring-beans": [
     "spring-boot-starter 를 거쳐 들어온 간접 의존성이다(5.3.17). 코드에서 직접 가져오는 곳은 없다.",
-    "/profile 의 @ModelAttribute 바인딩(GreetingController.java:32)에 프레임워크의 데이터 바인딩이 쓰인다. bootJar 로 패키징하고(WAR 아님), build.gradle:11 은 sourceCompatibility 11, 이 저장소의 빌드와 스캔은 JDK 17 로 했다."
+    "/profile 의 @ModelAttribute 바인딩(GreetingController.java:29)에 프레임워크의 데이터 바인딩이 쓰인다. bootJar 로 패키징하고(WAR 아님), build.gradle:9 은 sourceCompatibility 11, 이 저장소의 빌드와 스캔은 JDK 17 로 했다."
   ],
   "spring-context": [
     "spring-boot-starter 를 거쳐 들어온 간접 의존성이다(5.3.17). 코드에서 직접 가져오는 곳은 없다.",
