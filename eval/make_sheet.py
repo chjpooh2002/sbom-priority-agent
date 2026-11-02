@@ -1,9 +1,9 @@
-"""정답 작성용 사실 표(gold30_sheet.md)를 만든다.
+"""정답 작성용 사실 표(gold30_sheet.md, gold_val15_sheet.md)를 만든다.
 
 판정이 섞이지 않도록 results.json 은 읽지 않는다. grype 결과와 측정에 쓴 지표 스냅샷으로
 load_grype → enrich → annotate 만 다시 돌리고, 규칙(apply_rules)은 부르지 않는다.
 
-  PYTHONPATH=src python eval/make_sheet.py
+  PYTHONPATH=src python eval/make_sheet.py --gold eval/gold_val15.csv --out eval/gold_val15_sheet.md
 """
 from __future__ import annotations
 
@@ -13,16 +13,10 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
+from sbom_agent.criteria import load_criteria
 from sbom_agent.enrich import enrich
 from sbom_agent.load import load_grype
 from sbom_agent.reach import annotate
-
-GRADES = """| 등급 | 기준 |
-| --- | --- |
-| P1 긴급 | 외부 입력이 취약 기능에 닿고, 실제 악용 사례가 있거나 악용이 쉬움. 이번 주 조치 |
-| P2 높음 | 공격 경로가 있으나 조건이 붙음. 다음 배포에 포함 |
-| P3 보통 | 경로가 확인되지 않거나 전제 조건이 성립하지 않음. 정기 업데이트 때 |
-| P4 낮음 | 코드와 프레임워크 어디서도 쓰이지 않음. 기록만 |"""
 
 
 def cell(s: str) -> str:
@@ -75,6 +69,8 @@ def main() -> None:
         groups[by_key[k].package].append(by_key[k])
 
     md = ["# 정답 작성용 사실 표", "",
+          "## 판정 기준 (README 에서 그대로 읽어 옴)", "", load_criteria(), "",
+          "## 이 표에 대해", "",
           f"대상: `{a.gold}` {len(keys)}건, 라이브러리 {len(groups)}종. 정답은 `{a.gold}` 의 gold_tier 칸에 적는다.", "",
           "판정 결과는 이 표에 넣지 않는다. 라이브러리 이름순, 라이브러리 안에서는 key 이름순으로 정렬했다.", "",
           f"\"직접 사용 위치\"는 `reach.py` 결과다(방식: `{reach_method}`). jar 색인 방식은 import 한 클래스가 "
@@ -82,8 +78,7 @@ def main() -> None:
           "실제 사용 방식은 라이브러리별 요약을 함께 본다.", "",
           f"- 스캔: {meta.get('scan_date')} · syft {meta.get('syft_version')} · grype {meta.get('grype_version')}"
           f" · grype DB {meta.get('grype_db_built')}",
-          f"- KEV {meta.get('kev_catalog_version')} · EPSS 기준일 {', '.join(meta.get('epss_dates') or []) or '-'}", "",
-          "## 정답 기준 (README)", "", GRADES, ""]
+          f"- KEV {meta.get('kev_catalog_version')} · EPSS 기준일 {', '.join(meta.get('epss_dates') or []) or '-'}", ""]
 
     for pkg in sorted(groups):
         fs = sorted(groups[pkg], key=lambda f: f.key)
@@ -94,10 +89,11 @@ def main() -> None:
             epss = "-" if f.epss is None else f"{f.epss:.4f} (백분위 {f.epss_percentile:.1%})"
             usages = [u.replace("\\", "/") for u in f.direct_usages]
             md += [f"### `{f.key}`", "",
-                   "| 취약점 | 다른 식별자 | CVSS | EPSS | KEV | 수정 버전 |",
-                   "| --- | --- | --- | --- | --- | --- |",
+                   "| 취약점 | 다른 식별자 | CVSS | EPSS | KEV | 수정 버전 | 실행 jar 포함 |",
+                   "| --- | --- | --- | --- | --- | --- | --- |",
                    f"| {f.vuln_id} | {cell(', '.join(f.aliases)) or '-'} | {f.cvss if f.cvss is not None else '-'} | {epss} | "
-                   f"{'등재' if f.in_kev else '미등재'} | {cell(', '.join(f.fixed_versions)) or '-'} |", "",
+                   f"{'등재' if f.in_kev else '미등재'} | {cell(', '.join(f.fixed_versions)) or '-'} | "
+                   f"{ {True: '예', False: '아니오', None: '확인 불가'}[f.in_runtime] } |", "",
                    "- 직접 사용 위치(import 기준): " + ("; ".join(f"`{cell(u)}`" for u in usages) if usages else "없음"),
                    f"- 설명(앞 300자): {cell(descs.get(f.key, f.description)[:300])}", ""]
 

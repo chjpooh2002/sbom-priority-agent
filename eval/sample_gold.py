@@ -5,7 +5,9 @@
   2) 남는 자리는 건수 많은 라이브러리부터 1건씩 더
   라이브러리 안에서는 고정 시드로 무작위 선택한다.
 
-  python eval/sample_gold.py --gold eval/gold.csv --out eval/gold30.csv --n 30
+  PYTHONPATH=src python eval/sample_gold.py --gold eval/gold.csv --out eval/gold30.csv --n 30
+  # 검증 세트: 이미 정답 대상으로 쓴 key 는 뺀다
+  PYTHONPATH=src python eval/sample_gold.py --gold eval/gold.csv --exclude eval/gold30.csv --n 15 --seed 20261103 --out eval/gold_val15.csv
 """
 from __future__ import annotations
 
@@ -14,6 +16,8 @@ import csv
 import random
 from collections import defaultdict
 
+from sbom_agent.cli import read_csv  # 엑셀이 저장한 CP949 파일도 읽는다
+
 
 def main() -> None:
     p = argparse.ArgumentParser()
@@ -21,12 +25,13 @@ def main() -> None:
     p.add_argument("--out", default="eval/gold30.csv")
     p.add_argument("--n", type=int, default=30)
     p.add_argument("--seed", type=int, default=20261102)
+    p.add_argument("--exclude", action="append", default=[], help="이 csv 의 key 는 뽑지 않는다(여러 번 줄 수 있음)")
     a = p.parse_args()
 
-    with open(a.gold, encoding="utf-8-sig", newline="") as fp:
-        reader = csv.DictReader(fp)
-        fields = reader.fieldnames
-        rows = list(reader)
+    rows = read_csv(a.gold)
+    fields = list(rows[0].keys())
+    excluded = {r["key"] for path in a.exclude for r in read_csv(path)}
+    rows = [r for r in rows if r["key"] not in excluded]
 
     rng = random.Random(a.seed)
     groups: dict[str, list[dict]] = defaultdict(list)
@@ -48,7 +53,7 @@ def main() -> None:
         w = csv.DictWriter(fp, fieldnames=fields)
         w.writeheader()
         w.writerows(picked)
-    print(f"{len(rows)}건 중 {len(picked)}건 → {a.out}")
+    print(f"{len(rows)}건 중 {len(picked)}건 → {a.out}" + (f" (제외 {len(excluded)}건)" if excluded else ""))
 
 
 if __name__ == "__main__":
