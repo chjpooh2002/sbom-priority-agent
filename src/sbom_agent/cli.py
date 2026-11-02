@@ -60,7 +60,7 @@ def cmd_run(a) -> None:
         rows.append({
             "key": f.key, "vuln_id": f.vuln_id, "package": f.package, "version": f.version,
             "cvss": f.cvss, "epss": f.epss, "in_kev": f.in_kev, "fixed_versions": f.fixed_versions,
-            "direct_usages": f.direct_usages,
+            "direct_usages": f.direct_usages, "in_runtime": f.in_runtime,
             "cvss_only_tier": cvss_only_tier(f).value,
             "rule_tier": f.rule_tier.value, "rule_reasons": f.rule_reasons,
             "agent_tier": d.tier.value if d else f.rule_tier.value,

@@ -64,17 +64,23 @@ class JarIndex:
         self.jar = jar
         self.classes: dict[str, str] = {}                     # org/x/Y → lib 파일 이름
         self.packages: dict[str, set[str]] = defaultdict(set)  # org/x → lib 파일 이름들
+        self.libs: list[str] = []
         with zipfile.ZipFile(jar) as z:
             for name in z.namelist():
                 if not (name.startswith(LIB_DIRS) and name.endswith(".jar")):
                     continue
                 lib = name.rsplit("/", 1)[1]
+                self.libs.append(lib)
                 with zipfile.ZipFile(io.BytesIO(z.read(name))) as inner:
                     for n in inner.namelist():
                         if n.endswith(".class") and not n.startswith(("META-INF/", "module-info")):
                             cls = n[:-6]
                             self.classes.setdefault(cls, lib)
                             self.packages[cls.rsplit("/", 1)[0]].add(lib)
+
+    def libraries(self) -> list[str]:
+        """jar 안 라이브러리 파일 이름(클래스가 없는 라이브러리도 포함)."""
+        return list(self.libs)
 
     def libs_for_import(self, name: str, wildcard: bool) -> set[str]:
         path = name.replace(".", "/")
@@ -106,8 +112,10 @@ def _usages_by_jar(findings: list[Finding], root: Path, index: JarIndex, limit: 
                 libs = index.libs_for_import(m.group(2), bool(m.group(3)))
                 if libs:
                     hits.append((f"{p.relative_to(root).as_posix()}:{n}: {line.strip()}", libs))
+    runtime_libs = index.libraries()
     for f in findings:
         f.direct_usages = [h for h, libs in hits if any(_lib_matches(f, lib) for lib in libs)][:limit]
+        f.in_runtime = any(_lib_matches(f, lib) for lib in runtime_libs)
 
 
 def java_prefixes(f: Finding) -> list[str]:
@@ -143,4 +151,5 @@ def annotate(findings: list[Finding], src_root: str | Path, jar: str | Path | No
         return f"jar-index:{jar_path.as_posix()}"
     for f in findings:
         f.direct_usages = find_usages(f, root, limit)
+        f.in_runtime = None
     return "import-prefix"

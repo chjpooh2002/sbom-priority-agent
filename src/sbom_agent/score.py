@@ -42,7 +42,13 @@ def rule_tier(f: Finding) -> tuple[Tier, list[str]]:
         return Tier.P2, r
     if used or cvss >= CVSS_HIGH:
         return Tier.P3, r
-    return Tier.P4, r
+    # P4 는 "실행 중 로드되지 않음" 근거가 있을 때만 준다. 직접 쓰지 않아도 프레임워크가 쓸 수 있으므로
+    # 실행 jar 에 들어 있거나 확인할 수 없으면 P3 을 하한으로 둔다(P4 로 내릴 근거 찾기는 에이전트 몫).
+    if f.in_runtime is False:
+        r.append("실행 jar 에 없음")
+        return Tier.P4, r
+    r.append("실행 jar 에 포함(로드 여부 미확인) → 최저 P3" if f.in_runtime else "실행 jar 확인 불가 → 최저 P3")
+    return Tier.P3, r
 
 
 def apply_rules(findings: list[Finding]) -> None:

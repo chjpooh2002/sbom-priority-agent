@@ -114,6 +114,7 @@ def _payload(f: Finding) -> str:
         "수정_버전": f.fixed_versions,
         "설명": f.description,
         "직접_사용_위치": f.direct_usages,
+        "실행_jar_포함": f.in_runtime,
         "규칙_판정": f.rule_tier.value if f.rule_tier else None,
         "규칙_근거": f.rule_reasons,
     }, ensure_ascii=False, indent=2)

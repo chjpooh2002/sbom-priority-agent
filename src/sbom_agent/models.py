@@ -39,6 +39,7 @@ class Finding(BaseModel):
 
     # 코드 사용 여부
     direct_usages: list[str] = []  # "경로:줄번호: 코드"
+    in_runtime: Optional[bool] = None  # 실행 jar 안에 들어 있는가(jar 가 없어 확인 못 하면 None)
 
     # 판정
     rule_tier: Optional[Tier] = None
