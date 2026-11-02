@@ -26,7 +26,7 @@ ORDER = {"P1": 1, "P2": 2, "P3": 3, "P4": 4}
 def cmd_run(a) -> None:
     findings = load_grype(a.scan)
     snapshot = enrich(findings, offline=a.offline, kev_file=a.kev_file, epss_file=a.epss_file)
-    annotate(findings, a.src)
+    reach_method = annotate(findings, a.src)
     apply_rules(findings)
 
     targets = [] if a.no_agent else findings
@@ -65,11 +65,11 @@ def cmd_run(a) -> None:
     out.mkdir(parents=True, exist_ok=True)
     (out / "results.json").write_text(json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8")
     (out / "report.md").write_text(render_report(rows), encoding="utf-8")
-    write_snapshot(out, a, snapshot)
+    write_snapshot(out, a, snapshot, reach_method)
     print(f"{len(rows)}건 처리 → {out/'results.json'}, {out/'report.md'}")
 
 
-def write_snapshot(out: Path, a, snapshot: dict) -> None:
+def write_snapshot(out: Path, a, snapshot: dict, reach_method: str) -> None:
     """측정에 쓴 외부 지표 원본과 도구·DB 버전을 남긴다. 스냅샷은 --kev-file/--epss-file 로 다시 넣을 수 있다."""
     for name, data in (("kev_snapshot.json", snapshot["kev"]), ("epss_snapshot.json", snapshot["epss"])):
         (out / name).write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
@@ -97,6 +97,7 @@ def write_snapshot(out: Path, a, snapshot: dict) -> None:
         "epss_dates": sorted({r.get("date") for r in snapshot["epss"]["data"] if r.get("date")}),
         "epss_rows": len(snapshot["epss"]["data"]),
         "offline": a.offline,
+        "reach_method": reach_method,
     }
     (out / "scan_meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
 

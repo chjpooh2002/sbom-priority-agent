@@ -4,7 +4,7 @@
 
 판정 결과는 이 표에 넣지 않는다. 라이브러리 이름순, 라이브러리 안에서는 key 이름순으로 정렬했다.
 
-"직접 사용 위치"는 `reach.py` 의 import 접두어 매칭 결과를 그대로 옮긴 것이다. 패키지 이름이 따로 지정되지 않은 라이브러리는 메이븐 그룹 아이디를 접두어로 쓰므로, 같은 그룹의 다른 모듈 import 도 잡힌다(예: spring-core·spring-context·spring-expression 에 spring-web 어노테이션 import, spring-boot 와 spring-boot-autoconfigure 는 서로의 import). log4j-core 는 log4j-api 패키지 import 로 잡힌 것이다. 실제 사용 방식은 라이브러리별 요약을 함께 본다.
+"직접 사용 위치"는 `reach.py` 결과다(방식: `jar-index:sample-app/build/libs/sample-app-0.0.1.jar`). jar 색인 방식은 import 한 클래스가 실제로 들어 있는 라이브러리에만 연결하므로, 프레임워크를 거쳐 간접으로 쓰이는 경우는 "없음"으로 나온다. 실제 사용 방식은 라이브러리별 요약을 함께 본다.
 
 - 스캔: 2026-11-02T10:26:30.9503357+09:00 · syft 1.54.1 · grype 0.121.0 · grype DB 2026-11-01T06:20:12Z
 - KEV 2026.10.30 · EPSS 기준일 2026-11-01
@@ -162,7 +162,7 @@
 | --- | --- | --- | --- | --- | --- |
 | CVE-2021-44228 | GHSA-jfh8-c2jp-5v3q | 10.0 | 1.0000 (백분위 100.0%) | 등재 | 2.15.0 |
 
-- 직접 사용 위치(import 기준): `src/main/java/com/example/demo/GreetingController.java:4: import org.apache.logging.log4j.LogManager;`; `src/main/java/com/example/demo/GreetingController.java:5: import org.apache.logging.log4j.Logger;`
+- 직접 사용 위치(import 기준): 없음
 - 설명(앞 300자): Apache Log4j2 2.0-beta9 through 2.15.0 (excluding security releases 2.12.2, 2.12.3, and 2.3.1) JNDI features used in configuration, log messages, and parameters do not protect against attacker controlled LDAP and other JNDI related endpoints. An attacker who can control log messages or log message p
 
 ### `CVE-2021-44832|log4j-core`
@@ -171,7 +171,7 @@
 | --- | --- | --- | --- | --- | --- |
 | CVE-2021-44832 | GHSA-8489-44mv-ggj8 | 6.6 | 0.9791 (백분위 99.9%) | 미등재 | 2.17.1 |
 
-- 직접 사용 위치(import 기준): `src/main/java/com/example/demo/GreetingController.java:4: import org.apache.logging.log4j.LogManager;`; `src/main/java/com/example/demo/GreetingController.java:5: import org.apache.logging.log4j.Logger;`
+- 직접 사용 위치(import 기준): 없음
 - 설명(앞 300자): Apache Log4j2 versions 2.0-beta7 through 2.17.0 (excluding security fix releases 2.3.2 and 2.12.4) are vulnerable to a remote code execution (RCE) attack when a configuration uses a JDBC Appender with a JNDI LDAP data source URI when an attacker has control of the target LDAP server. This issue is f
 
 ## logback-classic 1.2.11 (1건)
@@ -269,7 +269,7 @@
 | --- | --- | --- | --- | --- | --- |
 | CVE-2026-40973 | GHSA-wwpq-f5c3-7hvx | 7.0 | 0.0014 (백분위 3.0%) | 미등재 | - |
 
-- 직접 사용 위치(import 기준): `src/main/java/com/example/demo/DemoApplication.java:3: import org.springframework.boot.SpringApplication;`; `src/main/java/com/example/demo/DemoApplication.java:4: import org.springframework.boot.autoconfigure.SpringBootApplication;`
+- 직접 사용 위치(import 기준): `src/main/java/com/example/demo/DemoApplication.java:3: import org.springframework.boot.SpringApplication;`
 - 설명(앞 300자): A local attacker on the same host as the application may be able to take control of the directory used by `ApplicationTemp`. When `server.servlet.session.persistent` is set to `true` and the attack persists across application restarts, this may allow the attacker to read session information and hija
 
 ## spring-boot-autoconfigure 2.6.5 (1건)
@@ -285,7 +285,7 @@
 | --- | --- | --- | --- | --- | --- |
 | CVE-2023-20883 | GHSA-xf96-w227-r7c4 | 7.5 | 0.0091 (백분위 60.0%) | 미등재 | 2.6.15 |
 
-- 직접 사용 위치(import 기준): `src/main/java/com/example/demo/DemoApplication.java:3: import org.springframework.boot.SpringApplication;`; `src/main/java/com/example/demo/DemoApplication.java:4: import org.springframework.boot.autoconfigure.SpringBootApplication;`
+- 직접 사용 위치(import 기준): `src/main/java/com/example/demo/DemoApplication.java:4: import org.springframework.boot.autoconfigure.SpringBootApplication;`
 - 설명(앞 300자): In Spring Boot versions 3.0.0 - 3.0.6, 2.7.0 - 2.7.11, 2.6.0 - 2.6.14, 2.5.0 - 2.5.14 and older unsupported versions, there is potential for a denial-of-service (DoS) attack if Spring MVC is used together with a reverse proxy cache.
 
 ## spring-context 5.3.17 (1건)
@@ -301,7 +301,7 @@
 | --- | --- | --- | --- | --- | --- |
 | CVE-2024-38820 | GHSA-4gc7-5j7h-4qph | 5.3 | 0.0062 (백분위 49.6%) | 미등재 | - |
 
-- 직접 사용 위치(import 기준): `src/main/java/com/example/demo/DemoApplication.java:3: import org.springframework.boot.SpringApplication;`; `src/main/java/com/example/demo/DemoApplication.java:4: import org.springframework.boot.autoconfigure.SpringBootApplication;`; `src/main/java/com/example/demo/GreetingController.java:6: import org.springframework.web.bind.annotation.GetMapping;`; `src/main/java/com/example/demo/GreetingController.java:7: import org.springframework.web.bind.annotation.ModelAttribute;`; `src/main/java/com/example/demo/GreetingController.java:8: import org.springframework.web.bind.annotation.RequestHeader;`; `src/main/java/com/example/demo/GreetingController.java:9: import org.springframework.web.bind.annotation.RequestParam;`; `src/main/java/com/example/demo/GreetingController.java:10: import org.springframework.web.bind.annotation.RestController;`
+- 직접 사용 위치(import 기준): 없음
 - 설명(앞 300자): The fix for CVE-2022-22968 made disallowedFields patterns in DataBinder case insensitive. However, String.toLowerCase() has some Locale dependent exceptions that could potentially result in fields not protected as expected.
 
 ## spring-core 5.3.17 (1건)
@@ -317,7 +317,7 @@
 | --- | --- | --- | --- | --- | --- |
 | CVE-2026-41848 | GHSA-659m-px2c-25wj | 3.7 | 0.0034 (백분위 26.9%) | 미등재 | - |
 
-- 직접 사용 위치(import 기준): `src/main/java/com/example/demo/DemoApplication.java:3: import org.springframework.boot.SpringApplication;`; `src/main/java/com/example/demo/DemoApplication.java:4: import org.springframework.boot.autoconfigure.SpringBootApplication;`; `src/main/java/com/example/demo/GreetingController.java:6: import org.springframework.web.bind.annotation.GetMapping;`; `src/main/java/com/example/demo/GreetingController.java:7: import org.springframework.web.bind.annotation.ModelAttribute;`; `src/main/java/com/example/demo/GreetingController.java:8: import org.springframework.web.bind.annotation.RequestHeader;`; `src/main/java/com/example/demo/GreetingController.java:9: import org.springframework.web.bind.annotation.RequestParam;`; `src/main/java/com/example/demo/GreetingController.java:10: import org.springframework.web.bind.annotation.RestController;`
+- 직접 사용 위치(import 기준): 없음
 - 설명(앞 300자): Applications may be vulnerable to a Regular Expression Denial of Service (ReDoS) attack if an attacker is able to provide a pattern which is then directly or indirectly supplied to one of the following methods in AntPathMatcher: match(String pattern, String path), matchStart(String pattern, String p
 
 ## spring-expression 5.3.17 (2건)
@@ -333,7 +333,7 @@
 | --- | --- | --- | --- | --- | --- |
 | CVE-2023-20861 | GHSA-564r-hj7v-mcr5 | 6.5 | 0.0097 (백분위 61.9%) | 미등재 | 5.3.26 |
 
-- 직접 사용 위치(import 기준): `src/main/java/com/example/demo/DemoApplication.java:3: import org.springframework.boot.SpringApplication;`; `src/main/java/com/example/demo/DemoApplication.java:4: import org.springframework.boot.autoconfigure.SpringBootApplication;`; `src/main/java/com/example/demo/GreetingController.java:6: import org.springframework.web.bind.annotation.GetMapping;`; `src/main/java/com/example/demo/GreetingController.java:7: import org.springframework.web.bind.annotation.ModelAttribute;`; `src/main/java/com/example/demo/GreetingController.java:8: import org.springframework.web.bind.annotation.RequestHeader;`; `src/main/java/com/example/demo/GreetingController.java:9: import org.springframework.web.bind.annotation.RequestParam;`; `src/main/java/com/example/demo/GreetingController.java:10: import org.springframework.web.bind.annotation.RestController;`
+- 직접 사용 위치(import 기준): 없음
 - 설명(앞 300자): In Spring Framework versions 6.0.0 - 6.0.6, 5.3.0 - 5.3.25, 5.2.0.RELEASE - 5.2.22.RELEASE, and older unsupported versions, it is possible for a user to provide a specially crafted SpEL expression that may cause a denial-of-service (DoS) condition.
 
 ### `CVE-2026-41849|spring-expression`
@@ -342,7 +342,7 @@
 | --- | --- | --- | --- | --- | --- |
 | CVE-2026-41849 | GHSA-775g-4xr8-78h8 | 7.5 | 0.0026 (백분위 18.2%) | 미등재 | - |
 
-- 직접 사용 위치(import 기준): `src/main/java/com/example/demo/DemoApplication.java:3: import org.springframework.boot.SpringApplication;`; `src/main/java/com/example/demo/DemoApplication.java:4: import org.springframework.boot.autoconfigure.SpringBootApplication;`; `src/main/java/com/example/demo/GreetingController.java:6: import org.springframework.web.bind.annotation.GetMapping;`; `src/main/java/com/example/demo/GreetingController.java:7: import org.springframework.web.bind.annotation.ModelAttribute;`; `src/main/java/com/example/demo/GreetingController.java:8: import org.springframework.web.bind.annotation.RequestHeader;`; `src/main/java/com/example/demo/GreetingController.java:9: import org.springframework.web.bind.annotation.RequestParam;`; `src/main/java/com/example/demo/GreetingController.java:10: import org.springframework.web.bind.annotation.RestController;`
+- 직접 사용 위치(import 기준): 없음
 - 설명(앞 300자): An integer overflow vulnerability exists in the evaluation logic of the Spring Expression Language (SpEL). An attacker can exploit this by supplying a specially crafted SpEL expression that triggers excessive resource consumption, resulting in a Denial of Service (DoS).  Affected versions: Spring Fr
 
 ## spring-web 5.3.17 (2건)

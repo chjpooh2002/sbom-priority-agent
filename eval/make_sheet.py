@@ -61,7 +61,7 @@ def main() -> None:
         keys = [r["key"] for r in csv.DictReader(fp)]
     findings = load_grype(a.scan)
     enrich(findings, offline=True, kev_file=a.kev_file, epss_file=a.epss_file)
-    annotate(findings, a.src)
+    reach_method = annotate(findings, a.src)
     by_key = {f.key: f for f in findings}
     missing = [k for k in keys if k not in by_key]
     if missing:
@@ -77,10 +77,8 @@ def main() -> None:
     md = ["# 정답 작성용 사실 표", "",
           f"대상: `{a.gold}` {len(keys)}건, 라이브러리 {len(groups)}종. 정답은 `{a.gold}` 의 gold_tier 칸에 적는다.", "",
           "판정 결과는 이 표에 넣지 않는다. 라이브러리 이름순, 라이브러리 안에서는 key 이름순으로 정렬했다.", "",
-          "\"직접 사용 위치\"는 `reach.py` 의 import 접두어 매칭 결과를 그대로 옮긴 것이다. 패키지 이름이 따로 지정되지 않은 "
-          "라이브러리는 메이븐 그룹 아이디를 접두어로 쓰므로, 같은 그룹의 다른 모듈 import 도 잡힌다"
-          "(예: spring-core·spring-context·spring-expression 에 spring-web 어노테이션 import, "
-          "spring-boot 와 spring-boot-autoconfigure 는 서로의 import). log4j-core 는 log4j-api 패키지 import 로 잡힌 것이다. "
+          f"\"직접 사용 위치\"는 `reach.py` 결과다(방식: `{reach_method}`). jar 색인 방식은 import 한 클래스가 "
+          "실제로 들어 있는 라이브러리에만 연결하므로, 프레임워크를 거쳐 간접으로 쓰이는 경우는 \"없음\"으로 나온다. "
           "실제 사용 방식은 라이브러리별 요약을 함께 본다.", "",
           f"- 스캔: {meta.get('scan_date')} · syft {meta.get('syft_version')} · grype {meta.get('grype_version')}"
           f" · grype DB {meta.get('grype_db_built')}",
