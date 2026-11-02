@@ -1,0 +1,188 @@
+
+######## out/v2/gpt-6-luna/results.json  (정답: eval/gold_val15.csv)
+
+=== CVE-2016-1000027|spring-web  정답 P1 | 규칙 P1 (악용 가능성 점수 0.332 (기준 0.1 이상); 심각도 9.8; 우리 코드에서 직접 사용) | 에이전트 P2 (제안 P3, conf 0.86)
+  메모: GreetingController에서 요청과 관련된 어노테이션을 가지고 와서 외부 요청에 취약하다.
+  CVSS 9.8 EPSS 0.33179 KEV False 직접사용 5 실행jar True
+  경로: 확인된 경로 없음. 실행 jar에 HTTP Invoker 클래스는 포함되어 있지만, 확인한 애플리케이션 코드와 설정에는 HTTP Invoker 서비스 exporter나 그 엔드포인트가 보이지 않는다. 컨트롤러의 외부 요청 경로는 /hello, /template, /profile이며, 이 요청들이 취약한 HTTP Invoker 역직렬화 기능으로 이어지는 경로는 확인되지 않았다.
+  - 근거: 실행 jar 라이브러리 목록: spring-web-5.3.17.jar 포함
+  - 근거: 실행 jar 클래스 검색: org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter 및 관련 클래스가 spring-web-5.3.17.jar에 포함
+  - 근거: build.gradle:14: spring-boot-starter-web 의존성 선언
+  - 근거: build.gradle:9: Java sourceCompatibility가 11로 설정됨
+  - 근거: src/main/java/com/example/demo/GreetingController.java:17-30: /hello, /template, /profile 매핑만 확인됨
+  - 근거: src/main/java/com/example/demo/GreetingController.java:18-25: User-Agent 헤더와 text 요청 매개변수가 일반 컨트롤러 메서드에 전달됨
+  - 근거: src/main/resources/application.yml:1-6: H2 콘솔 비활성화 및 서버 포트 8080 설정
+  - 근거: 프로젝트 소스 검색 결과: HttpInvoker, httpinvoker, RemoteInvocation, ObjectInputStream, @Bean, Exporter 사용 위치가 확인되지 않음
+  - 근거: 입력 지표: CVE-2016-1000027, CVSS 9.8, EPSS 0.33179, KEV 등재 false, 수정 버전 6.0.0
+  도구(13): list_files(**/*) / search_code(spring-web|springframework|HttpInvoker|RemoteInvocation|Serialization|ObjectInputStream|ContentNegotiation|RestTemplate|@RequestBody|@ModelAttribute|@RequestHeader|@RequestParam|Servlet) / list_runtime_libraries() / find_runtime_class(org.springframework.web) / read_file(build.gradle:1-100) / read_file(src/main/java/com/example/demo/GreetingController.java:1-100) / read_file(src/main/resources/application.yml:1-100) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-80) / find_runtime_class(org.springframework.remoting.httpinvoker) / find_runtime_class(org.springframework.remoting) / read_file(src/main/java/com/example/demo/Profile.java:1-80) / read_file(settings.gradle:1-50) / search_code(HttpInvoker|httpinvoker|RemoteInvocation|ObjectInputStream|@PostMapping|@RequestMapping|@RestController|@Controller|@Bean|Exporter|deserialize|Serialization)
+
+=== CVE-2022-22970|spring-beans  정답 P3 | 규칙 P3 (심각도 7.5; 우리 코드에서 직접 사용하지 않음) | 에이전트 P2 (제안 P1, conf 0.79)
+  메모: 간접 의존성이지만 바인딩을 할 때 타격을 받은 것을 읽을 때 문제가 발생할 수 있다.
+  CVSS 7.5 EPSS 0.01962 KEV False 직접사용 0 실행jar True
+  경로: 외부에서 GET /profile에 특별히 구성한 속성 경로를 요청 파라미터로 전달하면, Spring MVC의 @ModelAttribute 데이터 바인딩을 거쳐 spring-beans의 속성 접근 기능에 도달할 수 있습니다. 해당 경로로 서비스 거부를 유발할 수 있는 기능 사용이 확인됩니다.
+  - 근거: build.gradle:14 — spring-boot-starter-web 의존성으로 Spring MVC 사용
+  - 근거: src/main/java/com/example/demo/GreetingController.java:28-30 — GET /profile이 외부 요청의 @ModelAttribute Profile을 바인딩
+  - 근거: src/main/java/com/example/demo/Profile.java:3-7 — 바인딩 대상 Profile에 name 속성과 setter 존재
+  - 근거: build.gradle:9 — Java 11 설정
+  - 근거: src/main/resources/application.yml:1-6 — 확인한 설정에 데이터 바인딩 제한이나 접근 제어 설정 없음
+  - 근거: 실행 jar 라이브러리 목록 — spring-beans-5.3.17.jar 포함
+  - 근거: 실행 jar 클래스 확인 — org.springframework.beans 패키지 클래스가 spring-beans-5.3.17.jar에 포함
+  - 근거: 입력 지표 — CVSS 7.5, KEV 등재 false, 수정 버전 5.3.20
+  도구(10): list_files(**/*) / search_code(spring-beans|spring-boot|springframework|spring\.beans|BeanWrapper|DataBinder|ConversionService|@InitBinder|PropertyEditor|spring\.mvc|DispatcherServlet) / list_runtime_libraries() / find_runtime_class(org.springframework.beans) / read_file(build.gradle:1-120) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/Profile.java:1-120) / read_file(src/main/resources/application.yml:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-80) / find_runtime_class(org.springframework.web.bind.WebDataBinder)
+
+=== CVE-2022-42004|jackson-databind  정답 P1 | 규칙 P3 (심각도 8.2; 우리 코드에서 직접 사용하지 않음) | 에이전트 P3 (제안 P3, conf 0.87)
+  메모: 간접 의존성이지만 컨트롤러의 세 엔드포인트가 모두 GET이라 위험 정보를 읽을 수 있다. 
+  CVSS 8.2 EPSS 0.03409 KEV False 직접사용 0 실행jar True
+  경로: 확인된 경로 없음
+  - 근거: 실행 JAR에 jackson-databind-2.13.2.jar가 포함되어 있고, com.fasterxml.jackson.databind.ObjectMapper 클래스도 해당 JAR에서 확인됨.
+  - 근거: 실행 JAR의 spring-web-5.3.17.jar에 MappingJackson2HttpMessageConverter 클래스가 있음. 프레임워크가 Jackson을 사용할 수 있으므로 직접 사용 코드가 없다는 이유만으로 실행 중 미사용으로 판단하지 않음.
+  - 근거: build.gradle:14 Spring Boot Web starter 사용. build.gradle:3 Spring Boot 플러그인 버전은 2.6.5.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:17-30에 확인된 컨트롤러 경로는 GET /hello, GET /template, GET /profile이며, @RequestBody 또는 JSON 본문을 받는 매핑은 없음. /profile은 @ModelAttribute 사용(src/main/java/com/example/demo/GreetingController.java:28-30).
+  - 근거: src/main/resources/application.yml:1-6에는 Jackson 취약 기능을 켜는 설정이 확인되지 않음.
+  - 근거: 외부 지표: KEV_등재=false, 수정_버전=2.13.4.
+  도구(10): list_files(**/*) / search_code(ObjectMapper|jackson|JsonParser|readValue|MappingJackson|HttpMessageConverter|@RequestBody|json) / list_runtime_libraries() / find_runtime_class(com.fasterxml.jackson.databind) / read_file(build.gradle:1-120) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/Profile.java:1-120) / read_file(src/main/resources/application.yml:1-100) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-80) / find_runtime_class(org.springframework.http.converter.json)
+
+=== CVE-2024-24549|tomcat-embed-core  정답 P1 | 규칙 P2 (악용 가능성 점수 0.231 (기준 0.1 이상); 심각도 7.5; 우리 코드에서 직접 사용하지 않음) | 에이전트 P3 (제안 P3, conf 0.91)
+  메모: 모든 HTTP 요청을 받는 내장 서버이므로 외부에 바로 노출되어 있어 매우 취약하다.
+  CVSS 7.5 EPSS 0.23072 KEV False 직접사용 0 실행jar True
+  경로: 확인된 경로 없음. Spring Boot 웹 서비스가 8080 포트에서 요청을 받지만, 설정에서 HTTP/2 활성화를 확인하지 못했다. 취약점 설명의 HTTP/2 요청 전제가 이 서비스에서 성립한다는 근거가 없어 취약한 HTTP/2 처리 기능에 대한 경로는 확인되지 않았다.
+  - 근거: build.gradle:14 — spring-boot-starter-web 의존성 사용
+  - 근거: application.yml:5-6 — server.port=8080 설정; HTTP/2 활성화 설정 없음
+  - 근거: 실행 jar: tomcat-embed-core-9.0.60.jar 포함; org.apache.coyote.http2 패키지 클래스 확인
+  - 근거: 입력 지표: 취약점 설명은 HTTP/2 요청 DoS, KEV_등재=false, CVSS=7.5, 수정 버전=9.0.86
+  도구(10): list_files(**/*) / search_code(tomcat|Tomcat|server\.http2|http2|Http2|spring-boot-starter-tomcat|server\.port|Connector|protocol) / list_runtime_libraries() / find_runtime_class(org.apache.coyote.http2) / read_file(build.gradle:1-120) / read_file(src/main/resources/application.yml:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-100) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/Profile.java:1-100) / read_file(settings.gradle:1-80)
+
+=== CVE-2025-22233|spring-context  정답 P3 | 규칙 P3 (우리 코드에서 직접 사용하지 않음; 수정 버전 없음; 실행 jar 에 포함(로드 여부 미확인) → 최저 P3) | 에이전트 P2 (제안 P2, conf 0.76)
+  메모: 어플리케이션 컨텍스트 구동할 때 공격 받은 파일을 읽으면 감염될 수 있는 취약점이 있다.
+  CVSS 3.1 EPSS 0.00435 KEV False 직접사용 0 실행jar True
+  경로: GET /profile?name=... 요청 → GreetingController.profile의 @ModelAttribute Profile → Spring MVC DataBinder. 외부 쿼리 값이 바인딩 경로에 도달한다. 취약점 설명에 해당하는 구체적 트리거 입력과 실제 배포 환경의 인증 여부는 확인되지 않았다.
+  - 근거: build.gradle:14: spring-boot-starter-web을 implementation으로 선언
+  - 근거: 실행 jar 도구: spring-context-5.3.17.jar 포함
+  - 근거: 실행 jar 클래스 검색: org.springframework.validation.DataBinder → spring-context-5.3.17.jar
+  - 근거: src/main/java/com/example/demo/GreetingController.java:28-30: /profile 엔드포인트가 @ModelAttribute Profile을 받고 profile.getName()을 반환
+  - 근거: src/main/java/com/example/demo/Profile.java:3-7: Profile에 name 프로퍼티와 setter가 있음
+  - 근거: src/main/resources/application.yml:1-6: H2 콘솔 비활성화와 서버 포트 설정만 확인됨
+  - 근거: 입력 지표: KEV_등재=false, CVSS=3.1, 수정_버전=[]
+  도구(10): list_files(**/*) / search_code(DataBinder|WebDataBinder|@InitBinder|spring-context|spring-boot|spring-web|spring.mvc|spring.web) / list_runtime_libraries() / find_runtime_class(org.springframework.validation.DataBinder) / read_file(build.gradle:1-100) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/Profile.java:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-100) / read_file(src/main/resources/application.yml:1-120) / search_code(@RequestMapping|@GetMapping|@PostMapping|@PutMapping|@PatchMapping|@ModelAttribute|@RequestParam|@RequestBody|setAllowedFields|setDisallowedFields|setIgnoreUnknownFields|setAutoGrowNestedPaths)
+
+=== CVE-2025-41249|spring-core  정답 P1 | 규칙 P3 (심각도 7.5; 우리 코드에서 직접 사용하지 않음; 수정 버전 없음) | 에이전트 P3 (제안 P3, conf 0.76)
+  메모: 모든 Spring 모듈의 기반이므로 어떠한 요청과 관련된 행위가 왔을 때도 관여하여 매우 취약하다.
+  CVSS 7.5 EPSS 0.00478 KEV False 직접사용 0 실행jar True
+  경로: 확인된 경로 없음. 외부 요청은 /hello, /template, /profile 컨트롤러에 도달하지만, 이 서비스에서 Spring Security의 메서드 인가 기능이나 관련 설정이 확인되지 않아 해당 인가 취약점까지 이어지는 경로는 확인되지 않음.
+  - 근거: build.gradle:3,14 — Spring Boot 2.6.5와 spring-boot-starter-web을 사용함.
+  - 근거: 실행 jar 검사 — spring-core-5.3.17.jar가 포함되고 org.springframework.core.annotation 클래스가 확인됨.
+  - 근거: 실행 jar 검사 — org.springframework.security 클래스는 확인되지 않음.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:12-30 — @RestController와 @GetMapping으로 /hello, /template, /profile 엔드포인트를 선언함. 외부 값은 User-Agent 헤더, text 요청 파라미터, Profile 모델 속성으로 받음.
+  - 근거: src/main/resources/application.yml:1-6 — H2 콘솔 비활성화 및 서버 포트 설정만 확인됨.
+  - 근거: 코드 검색 — spring-security, @EnableMethodSecurity, @EnableGlobalMethodSecurity, @PreAuthorize, @PostAuthorize, @Secured 등 일치 항목 없음.
+  - 근거: 입력 외부 지표 — KEV_등재=false, EPSS=0.00478, CVSS=7.5.
+  도구(13): list_files(**/*) / search_code(spring-core|spring-boot|springframework|@PreAuthorize|@Secured|EnableMethodSecurity|EnableGlobalMethodSecurity|RequestMapping|Controller|Security) / list_runtime_libraries() / find_runtime_class(org.springframework.core.annotation) / read_file(build.gradle:1-100) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-80) / read_file(src/main/resources/application.yml:1-120) / read_file(src/main/java/com/example/demo/Profile.java:1-100) / read_file(settings.gradle:1-60) / find_runtime_class(org.springframework.security) / find_runtime_class(org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping) / search_code(spring-security|EnableMethodSecurity|EnableGlobalMethodSecurity|PreAuthorize|PostAuthorize|Secured|RolesAllowed|AuthorizeReturnObject|@Bean|@Configuration|@Import)
+
+=== CVE-2025-68161|log4j-core  정답 P1 | 규칙 P3 (우리 코드에서 직접 사용하지 않음; 실행 jar 에 포함(로드 여부 미확인) → 최저 P3) | 에이전트 P3 (제안 P3, conf 0.9)
+  메모: build.gradle에 직접 선언되어 있고 요청의 헤더 값을 log.info(내부 로그)에 기록하여 검증되지 않은 값이 올 수 있어 취약점이 매우 크다.
+  CVSS 6.3 EPSS 0.00767 KEV False 직접사용 0 실행jar True
+  경로: 확인된 경로 없음. `/hello` 요청의 `User-Agent` 값은 Log4j 로거에 전달되지만, 취약한 Socket Appender로 전달되는 설정이나 경로는 확인되지 않음.
+  - 근거: build.gradle:15-16 — log4j-core 및 log4j-api 2.14.1을 의존성으로 선언함.
+  - 근거: 실행 jar 확인 — log4j-core-2.14.1.jar 포함, SocketAppender 클래스가 해당 jar에 포함됨.
+  - 근거: GreetingController.java:15,18-19 — Log4j 로거를 만들고 `/hello` 요청의 User-Agent를 로그에 기록함.
+  - 근거: application.yml:1-6 및 프로젝트 파일 목록 — Log4j 설정 파일이나 Socket Appender/TLS 설정을 확인하지 못함.
+  - 근거: 입력 지표: KEV 등재 false, CVSS 6.3, 수정 버전 2.25.3.
+  도구(9): search_code(log4j|SocketAppender|socket|logging\.config|log4j2) / list_files(**/*) / list_runtime_libraries() / find_runtime_class(org.apache.logging.log4j.core.appender.SocketAppender) / read_file(build.gradle:1-120) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/resources/application.yml:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-100) / search_code(Ssl|SSL|TLS|truststore|keystore|logging|logger|LogManager|Logger)
+
+=== CVE-2026-22741|spring-webmvc  정답 P1 | 규칙 P3 (우리 코드에서 직접 사용하지 않음; 수정 버전 없음; 실행 jar 에 포함(로드 여부 미확인) → 최저 P3) | 에이전트 P3 (제안 P3, conf 0.67)
+  메모: RestController 어노테이션과 관련된 내용으로 요청과 관련된 어노테이션이 있어 매우 취약하다.
+  CVSS 3.1 EPSS 0.00236 KEV False 직접사용 0 실행jar True
+  경로: 외부 HTTP 요청 → 내장 Tomcat → Spring MVC DispatcherServlet → (컨트롤러에 매핑되지 않는 경로의 경우) Spring Boot 기본 정적 리소스 매핑 → ResourceHttpRequestHandler의 리소스 해석. 정적 리소스 매핑은 기본 설정으로 활성화되는 구성이고, application.yml에는 이를 끄는 설정이 확인되지 않아 이 경로가 사용될 가능성이 높다. 다만 취약점 설명만으로 실제 캐시 오염에 필요한 구체 요청 조건과 악용 난이도까지는 확인할 수 없다.
+  - 근거: build.gradle:14 — spring-boot-starter-web 의존성 선언
+  - 근거: src/main/resources/application.yml:1-6 — 정적 리소스 매핑 비활성화 설정 없음
+  - 근거: src/main/java/com/example/demo/GreetingController.java:17-30 — /hello, /template, /profile 외 요청 경로를 처리하는 컨트롤러는 확인되지 않음
+  - 근거: 실행 jar 확인 — spring-webmvc-5.3.17.jar에 DispatcherServlet 및 ResourceHttpRequestHandler 클래스 존재
+  - 근거: 실행 jar 확인 — spring-boot-autoconfigure-2.6.5.jar에 WebMvcAutoConfiguration 클래스 존재
+  - 근거: 입력 지표: KEV_등재=false, CVSS=3.1, EPSS=0.00236
+  - 근거: 입력 지표: 수정_버전=[]
+  도구(12): list_files(**/*) / search_code(spring-webmvc|spring-boot|spring\.mvc|ResourceHandler|addResourceHandlers|WebMvcConfigurer|@Controller|@GetMapping|@RequestMapping|static-path-pattern|spring\.web\.resources|resource-chain|cache) / list_runtime_libraries() / find_runtime_class(org.springframework.web.servlet) / read_file(build.gradle:1-100) / read_file(src/main/resources/application.yml:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-100) / read_file(src/main/java/com/example/demo/GreetingController.java:1-140) / search_code(addResourceHandlers|ResourceHandlerRegistry|WebMvcConfigurer|spring\.web\.resources|spring\.mvc\.static-path-pattern|static-locations|resourceChain|resource-chain|spring\.webflux|RouterFunction|RouterFunctions|ResourceWebHandler|ResourceHttpRequestHandler) / find_runtime_class(org.springframework.web.servlet.resource.ResourceHttpRequestHandler) / find_runtime_class(org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration) / find_runtime_class(org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration$EnableWebMvcConfiguration)
+
+######## out/v2/gpt-6-sol/results.json  (정답: eval/gold_val15.csv)
+
+=== CVE-2016-1000027|spring-web  정답 P1 | 규칙 P1 (악용 가능성 점수 0.332 (기준 0.1 이상); 심각도 9.8; 우리 코드에서 직접 사용) | 에이전트 P2 (제안 P3, conf 0.93)
+  메모: GreetingController에서 요청과 관련된 어노테이션을 가지고 와서 외부 요청에 취약하다.
+  CVSS 9.8 EPSS 0.33179 KEV False 직접사용 5 실행jar True
+  경로: 확인된 경로 없음
+  - 근거: 실행 jar: spring-web-5.3.17.jar 포함, org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter 클래스 존재
+  - 근거: build.gradle:13-19: spring-boot-starter-web 의존성은 있으나 HTTP Invoker 기능을 설정하는 의존성이나 코드는 확인되지 않음
+  - 근거: src/main/java/com/example/demo/DemoApplication.java:6-10: 기본 Spring Boot 애플리케이션으로 실행하며 HTTP Invoker exporter 등록 코드가 없음
+  - 근거: src/main/java/com/example/demo/GreetingController.java:17-30: 외부 입력을 받는 경로는 /hello, /template, /profile이며 HTTP Invoker로 전달하는 경로가 없음
+  - 근거: src/main/resources/application.yml:1-6: HTTP Invoker 활성화 설정이 없음
+  - 근거: 입력 외부 지표: CVSS 9.8, EPSS 0.33179, KEV 미등재
+  도구(12): list_files(**/*) / search_code(SerializationUtils|deserialize|ObjectInputStream|HttpInvoker|RemoteInvocation|@ModelAttribute|@RequestBody|@RequestParam|@RequestHeader|spring\.remoting|httpinvoker|spring-web|spring-boot-starter-web) / list_runtime_libraries() / find_runtime_class(org.springframework.util.SerializationUtils) / find_runtime_class(org.springframework.remoting.httpinvoker) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/Profile.java:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-120) / read_file(src/main/resources/application.yml:1-120) / read_file(build.gradle:1-120) / read_file(settings.gradle:1-80) / search_code((?i)http.?invoker|remote.?invocation|serializ|ObjectInput|@Bean|@Import|@Enable|@GetMapping|@PostMapping|@RequestMapping|filter|converter|multipart|gadget|view)
+
+=== CVE-2022-22970|spring-beans  정답 P3 | 규칙 P3 (심각도 7.5; 우리 코드에서 직접 사용하지 않음) | 에이전트 P2 (제안 P1, conf 0.88)
+  메모: 간접 의존성이지만 바인딩을 할 때 타격을 받은 것을 읽을 때 문제가 발생할 수 있다.
+  CVSS 7.5 EPSS 0.01962 KEV False 직접사용 0 실행jar True
+  경로: 인증 설정이 확인되지 않은 GET /profile의 요청 파라미터 → @ModelAttribute Profile 데이터 바인딩 → Spring MVC의 spring-beans 바인딩 기능. 이 경로에서 외부 입력이 취약 기능에 닿는다.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:28-30: GET /profile이 요청 파라미터를 @ModelAttribute Profile에 바인딩한다.
+  - 근거: src/main/java/com/example/demo/Profile.java:3-7: Profile은 바인딩 가능한 name 속성을 가진다.
+  - 근거: build.gradle:3-4,14: Spring Boot 2.6.5와 spring-boot-starter-web을 사용한다.
+  - 근거: src/main/resources/application.yml:1-6: 확인된 설정에 바인딩 비활성화 설정은 없다.
+  - 근거: 실행 jar: spring-beans-5.3.17.jar와 spring-webmvc-5.3.17.jar가 포함되어 있고, BeanWrapperImpl은 spring-beans-5.3.17.jar에 있다.
+  - 근거: 외부 지표: CVSS 7.5, EPSS 0.01962, KEV 등재 false.
+  도구(12): list_files(**/*) / search_code(spring-beans|spring-boot|DataBinder|WebDataBinder|@ModelAttribute|@RequestParam|@RequestBody|@Controller|@RestController|@InitBinder|setAutoGrow|autoGrow|Multipart|binding|management) / list_runtime_libraries() / find_runtime_class(org.springframework.beans.AbstractNestablePropertyAccessor) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/Profile.java:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-120) / read_file(src/main/resources/application.yml:1-120) / read_file(build.gradle:1-120) / find_runtime_class(org.springframework.beans.BeanWrapperImpl) / find_runtime_class(org.springframework.web.bind.ServletRequestDataBinder) / search_code(@ModelAttribute|@InitBinder|WebDataBinder|DataBinder|setAllowedFields|setDisallowedFields|autoGrow|spring\.mvc|Profile|@GetMapping|@PostMapping|@RequestMapping)
+
+=== CVE-2022-42004|jackson-databind  정답 P1 | 규칙 P3 (심각도 8.2; 우리 코드에서 직접 사용하지 않음) | 에이전트 P3 (제안 P3, conf 0.91)
+  메모: 간접 의존성이지만 컨트롤러의 세 엔드포인트가 모두 GET이라 위험 정보를 읽을 수 있다. 
+  CVSS 8.2 EPSS 0.03409 KEV False 직접사용 0 실행jar True
+  경로: 확인된 경로 없음. 외부 요청은 /hello의 헤더, /template의 쿼리 값, /profile의 @ModelAttribute로 들어오지만, 확인된 엔드포인트에서 요청 JSON을 Jackson으로 역직렬화하는 경로는 없다.
+  - 근거: 실행 jar: jackson-databind-2.13.2.jar 포함, com.fasterxml.jackson.databind.ObjectMapper 클래스 확인
+  - 근거: build.gradle:3,14: Spring Boot 2.6.5와 spring-boot-starter-web 사용
+  - 근거: 실행 jar: MappingJackson2HttpMessageConverter는 spring-web-5.3.17.jar에 포함
+  - 근거: src/main/java/com/example/demo/GreetingController.java:17-30: 확인된 요청 처리 메서드는 GET 세 개이며 @RequestBody 없이 헤더, 쿼리 값, @ModelAttribute를 받음
+  - 근거: src/main/java/com/example/demo/Profile.java:3-7: Profile은 문자열 name 필드만 가짐
+  - 근거: src/main/resources/application.yml:1-6: JSON 입력을 별도로 활성화하는 설정은 확인되지 않음
+  - 근거: 입력 지표: CVSS 8.2, EPSS 0.03409, KEV 등재 false
+  도구(14): list_files(**/*) / search_code(@RestController|@Controller|@RequestBody|ObjectMapper|jackson|spring-boot-starter-web|spring-boot-starter-json|JsonParser|JsonNode|MappingJackson|Content-Type|HttpMessageConverter) / list_runtime_libraries() / find_runtime_class(com.fasterxml.jackson.databind.ObjectMapper) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/Profile.java:1-120) / read_file(src/main/resources/application.yml:1-120) / read_file(build.gradle:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-120) / search_code((?i)accept|postmapping|putmapping|patchmapping|requestmapping|requestparam|modelattribute|profile|json|deserialize|readValue|objectmapper|requestbody|content-type|stream|nest|depth) / find_runtime_class(org.springframework.http.converter.json.MappingJackson2HttpMessageConverter) / find_runtime_class(org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration) / find_runtime_class(com.fasterxml.jackson.databind.deser.std.UntypedObjectDeserializer) / search_code(@(?:PostMapping|PutMapping|PatchMapping|RequestBody)|Jackson2ObjectMapperBuilder|MappingJackson2HttpMessageConverter|spring\.mvc|spring\.jackson|consumes|produces)
+
+=== CVE-2024-24549|tomcat-embed-core  정답 P1 | 규칙 P2 (악용 가능성 점수 0.231 (기준 0.1 이상); 심각도 7.5; 우리 코드에서 직접 사용하지 않음) | 에이전트 P3 (제안 P3, conf 0.83)
+  메모: 모든 HTTP 요청을 받는 내장 서버이므로 외부에 바로 노출되어 있어 매우 취약하다.
+  CVSS 7.5 EPSS 0.23072 KEV False 직접사용 0 실행jar True
+  경로: 확인된 경로 없음. 웹 요청은 내장 Tomcat에 도달하지만, 취약한 HTTP/2 기능이 활성화된 설정은 확인되지 않았다.
+  - 근거: build.gradle:3,14 — Spring Boot 2.6.5와 spring-boot-starter-web을 사용한다.
+  - 근거: 실행 jar: tomcat-embed-core-9.0.60.jar 포함; org.apache.coyote.http2.Http2Protocol 클래스 존재.
+  - 근거: src/main/java/com/example/demo/DemoApplication.java:8-9 — Spring Boot 서비스를 실행한다.
+  - 근거: src/main/resources/application.yml:5-6 — 서버 포트 8080만 설정되어 있고 HTTP/2 활성화 설정은 없다.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:17-30 — 요청을 받는 엔드포인트가 있으나, 이것만으로 HTTP/2 요청 경로가 활성화됐다고 판단할 수 없다.
+  - 근거: 입력 지표: CVE-2024-24549, EPSS 0.23072, KEV 미등재, 수정 버전 9.0.86.
+  도구(12): list_files(**/*.{yml,yaml,properties,java,xml,gradle,kts}) / search_code((?i)http2|h2c|tomcat|server\.port|ssl|connector|protocol|spring-boot-starter-web|jetty|undertow) / list_runtime_libraries() / find_runtime_class(org.apache.coyote.http2.Http2Protocol) / list_files(**/*) / read_file(build.gradle:1-120) / search_code((?i)server:|http2|http-2|h2c|ssl|forwarded|proxy|ingress|@restcontroller|@controller|@requestmapping|@getmapping|@postmapping|tomcat|SpringApplication|Dockerfile|spring\.profiles|server\.) / find_runtime_class(org.apache.coyote.http2.Http2UpgradeHandler) / read_file(src/main/resources/application.yml:1-120) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-80) / read_file(settings.gradle:1-80)
+
+=== CVE-2025-41249|spring-core  정답 P1 | 규칙 P3 (심각도 7.5; 우리 코드에서 직접 사용하지 않음; 수정 버전 없음) | 에이전트 P3 (제안 P3, conf 0.85)
+  메모: 모든 Spring 모듈의 기반이므로 어떠한 요청과 관련된 행위가 왔을 때도 관여하여 매우 취약하다.
+  CVSS 7.5 EPSS 0.00478 KEV False 직접사용 0 실행jar True
+  경로: 확인된 경로 없음. 외부 요청은 /hello, /template, /profile에 도달하지만, 취약점과 관련된 인가 애너테이션 검사 경로는 확인되지 않았다.
+  - 근거: 실행 jar: spring-core-5.3.17.jar 포함, org.springframework.core.annotation.AnnotatedElementUtils 클래스 확인. org.springframework.security 클래스는 확인되지 않음.
+  - 근거: build.gradle:13-20: spring-boot-starter-web 의존성은 있으나 Spring Security 의존성은 없음.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:12-30: 외부 요청을 받는 세 엔드포인트와 입력 매개변수는 있으나 인가 애너테이션은 없음.
+  - 근거: src/main/java/com/example/demo/DemoApplication.java:6-9: Spring Boot 애플리케이션 실행 설정.
+  - 근거: 외부 지표: CVSS 7.5, EPSS 0.00478, KEV 미등재, 제공된 수정 버전 목록 비어 있음.
+  도구(17): list_files(**/*Security*.java) / list_files(**/application*.yml) / list_files(**/*Controller*.java) / list_files(**/pom.xml) / search_code(@PreAuthorize|@Secured|@RolesAllowed|@EnableMethodSecurity|@EnableGlobalMethodSecurity|@RequestMapping|@GetMapping|@PostMapping|@Controller|@RestController) / list_runtime_libraries() / list_files(**/*) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/resources/application.yml:1-120) / search_code(security|authorize|annotation|Enable|filter|interceptor|spring-boot|spring-core|spring-aop|@Inherited|@AliasFor|@Target|@Retention|@interface|Authentication|Authorization|@Profile|@Conditional|class ) / find_runtime_class(org.springframework.core.annotation.AnnotatedElementUtils) / find_runtime_class(org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping) / read_file(build.gradle:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-90) / read_file(src/main/java/com/example/demo/Profile.java:1-100) / find_runtime_class(org.springframework.security) / search_code(@|extends |implements |dependencies|plugins|implementation|runtimeOnly|version|group|java)
+
+=== CVE-2025-68161|log4j-core  정답 P1 | 규칙 P3 (우리 코드에서 직접 사용하지 않음; 실행 jar 에 포함(로드 여부 미확인) → 최저 P3) | 에이전트 P3 (제안 P3, conf 0.87)
+  메모: build.gradle에 직접 선언되어 있고 요청의 헤더 값을 log.info(내부 로그)에 기록하여 검증되지 않은 값이 올 수 있어 취약점이 매우 크다.
+  CVSS 6.3 EPSS 0.00767 KEV False 직접사용 0 실행jar True
+  경로: 확인된 경로 없음. /hello의 User-Agent 값은 로그 호출까지 전달되지만, 취약한 TLS Socket Appender로 전달되는 경로는 확인되지 않음.
+  - 근거: build.gradle:14-16 — Spring Boot 웹 서비스에 log4j-core 및 log4j-api 2.14.1을 명시적으로 추가함.
+  - 근거: 실행 jar: log4j-core-2.14.1.jar에 org.apache.logging.log4j.core.appender.SocketAppender 클래스가 있음. log4j-to-slf4j-2.17.2.jar와 logback-classic-1.2.11.jar도 포함됨.
+  - 근거: src/main/java/com/example/demo/GreetingController.java:15-20 — /hello의 User-Agent 값을 Log4j API의 log.info에 전달함.
+  - 근거: src/main/resources/application.yml:1-6 — Socket Appender 또는 로그 전송용 TLS 설정이 없음. 프로젝트 파일 목록에서도 별도의 Log4j 설정 파일이 확인되지 않음.
+  - 근거: 외부 지표: CVSS 6.3, EPSS 0.00767, KEV 미등재. 취약 조건은 Socket Appender의 TLS 호스트명 검증임.
+  도구(19): list_files(**/*log4j*) / list_files(**/application*) / list_files(**/pom.xml) / list_files(**/build.gradle*) / search_code((?i)(socketappender|socket appender|log4j|logging\.config|sslconfiguration|<socket|appender\.socket|socket\.host)) / list_runtime_libraries() / find_runtime_class(org.apache.logging.log4j.core.appender.SocketAppender) / read_file(build.gradle:1-120) / read_file(src/main/resources/application.yml:1-120) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / list_files(**/*) / search_code((?i)(Logger|LogManager|LoggingSystem|spring-boot-starter-logging|logback|Log4j2|@RequestMapping|@GetMapping|@PostMapping|@RestController|System\.setProperty|appenders|configuration|tls|https|socket)) / find_runtime_class(org.apache.logging.log4j.core.impl.Log4jContextFactory) / find_runtime_class(org.apache.logging.slf4j.SLF4JLoggerContextFactory) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-100) / read_file(src/main/java/com/example/demo/Profile.java:1-100) / find_runtime_class(org.springframework.boot.logging.logback.LogbackLoggingSystem) / find_runtime_class(org.springframework.boot.logging.log4j2.Log4J2LoggingSystem) / find_runtime_class(ch.qos.logback.classic.LoggerContext)
+
+=== CVE-2026-22741|spring-webmvc  정답 P1 | 규칙 P3 (우리 코드에서 직접 사용하지 않음; 수정 버전 없음; 실행 jar 에 포함(로드 여부 미확인) → 최저 P3) | 에이전트 P3 (제안 P3, conf 0.74)
+  메모: RestController 어노테이션과 관련된 내용으로 요청과 관련된 어노테이션이 있어 매우 취약하다.
+  CVSS 3.1 EPSS 0.00236 KEV False 직접사용 0 실행jar True
+  경로: 확인된 경로 없음. 외부 요청은 Spring MVC 컨트롤러에 도달하지만, 이 서비스에서 캐시 오염 대상이 될 정적 리소스나 캐시 구성을 확인하지 못했다.
+  - 근거: build.gradle:3,14: Spring Boot 2.6.5와 spring-boot-starter-web 사용
+  - 근거: 실행 jar: spring-webmvc-5.3.17.jar 포함, ResourceHttpRequestHandler 및 DispatcherServlet 클래스 확인
+  - 근거: src/main/java/com/example/demo/DemoApplication.java:6-9: Spring Boot 애플리케이션 실행
+  - 근거: src/main/java/com/example/demo/GreetingController.java:12-31: 확인된 외부 요청 경로는 /hello, /template, /profile이며 정적 리소스를 제공하는 코드가 아님
+  - 근거: src/main/resources/application.yml:1-6: 정적 리소스 또는 캐시 관련 설정 없음
+  - 근거: 입력 지표: KEV 미등재, EPSS 0.00236, 수정 버전 목록 없음
+  도구(11): list_files(**/*) / search_code(spring|resource|static|WebMvc|WebFlux|Security|addResourceHandlers|Cache|server\.) / list_runtime_libraries() / find_runtime_class(org.springframework.web.servlet.resource.ResourceHttpRequestHandler) / read_file(build.gradle:1-100) / read_file(src/main/resources/application.yml:1-120) / read_file(src/main/java/com/example/demo/GreetingController.java:1-120) / read_file(src/main/java/com/example/demo/DemoApplication.java:1-100) / list_files(src/main/resources/**) / find_runtime_class(org.springframework.web.servlet.DispatcherServlet) / search_code(@Controller|@RestController|@RequestMapping|@GetMapping|spring\.web\.resources|spring\.mvc\.static-path-pattern|resource\.static-locations|WebMvcConfigurer|EnableWebMvc|Cache-Control|cache\.period)
