@@ -11,6 +11,7 @@ import asyncio
 import csv
 import io
 import json
+import os
 import re
 from datetime import datetime, timezone
 from pathlib import Path
@@ -108,6 +109,7 @@ def write_snapshot(out: Path, a, snapshot: dict, reach_method: str) -> None:
         "epss_rows": len(snapshot["epss"]["data"]),
         "offline": a.offline,
         "reach_method": reach_method,
+        "agent_model": None if a.no_agent else (a.model or os.environ.get("OPENAI_MODEL", "gpt-5-mini")),
     }
     (out / "scan_meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -187,7 +189,8 @@ def check_ref(path: str, line: int, src: Path) -> bool:
     return 1 <= line <= len(f.read_text(encoding="utf-8", errors="ignore").splitlines())
 
 
-def agent_metrics(all_rows: list[dict], gold: dict[str, str], src: Path) -> list[str]:
+def agent_metrics(all_rows: list[dict], gold: dict[str, str], src: Path,
+                  price: tuple[float, float] | None = None) -> list[str]:
     ok = [r for r in all_rows if agent_status(r) == "ok"]
     tried = [r for r in all_rows if agent_status(r) in ("ok", "failed")]
     if not tried:
@@ -209,9 +212,11 @@ def agent_metrics(all_rows: list[dict], gold: dict[str, str], src: Path) -> list
     no_ref = sum(not REF.search(e) for r in ok for e in r["agent"]["evidence"])
 
     secs = [r["agent_seconds"] for r in tried if r.get("agent_seconds") is not None]
-    toks = [r["agent_usage"]["total_tokens"] for r in tried if r.get("agent_usage")]
+    usages = [r["agent_usage"] for r in tried if r.get("agent_usage")]
+    toks = [u["total_tokens"] for u in usages]
+    tools = [len(r["agent_trace"]) for r in tried]
     n_gold_changed = closer + farther + same
-    return [
+    md = [
         f"- 에이전트 판정 {len(tried)}건(성공 {len(ok)}, 실패 {len(tried) - len(ok)}), "
         f"실패율 {(len(tried) - len(ok)) / len(tried):.0%}",
         f"- 규칙 판정을 바꾼 건수: {len(changed)}건 (성공 {len(ok)}건 중)",
@@ -220,40 +225,77 @@ def agent_metrics(all_rows: list[dict], gold: dict[str, str], src: Path) -> list
         + f" — evidence 의 '경로:줄번호'가 `{src.as_posix()}` 안에 실제로 있는 비율. 경로 없는 근거 항목 {no_ref}개",
         f"- 건당 평균 시간: " + (f"{sum(secs) / len(secs):.1f}초 ({len(secs)}건)" if secs else "기록 없음"),
         f"- 건당 평균 토큰: " + (f"{sum(toks) / len(toks):,.0f} ({len(toks)}건)" if toks else "기록 없음"),
+        f"- 건당 평균 도구 호출: {sum(tools) / len(tools):.1f}회",
     ]
+    if price and usages:
+        cost = [(u["input_tokens"] * price[0] + u["output_tokens"] * price[1]) / 1e6 for u in usages]
+        md.append(f"- 건당 평균 비용: ${sum(cost) / len(cost):.4f} (합계 ${sum(cost):.3f}, "
+                  f"100만 토큰당 입력 ${price[0]} / 출력 ${price[1]}, 캐시 할인 미반영 상한)")
+    return md
 
 
-def alert_metrics(all_rows: list[dict]) -> list[str]:
-    n = len(all_rows)
-    base = sum(r["cvss_only_tier"] in ("P1", "P2") for r in all_rows)
-    md = [f"전체 {n}건 중 P1·P2 로 남은 건수. 감소율은 '심각도 점수만' 대비.", "",
+def alert_metrics(runs: dict[str, list[dict]]) -> list[str]:
+    first = next(iter(runs.values()))
+    n = len(first)
+    base = sum(r["cvss_only_tier"] in ("P1", "P2") for r in first)
+    md = [f"전체 {n}건 중 P1·P2 로 남은 건수. 감소율은 '심각도 점수만' 대비. "
+          "에이전트는 정답 대상만 판정했으므로 나머지는 규칙 판정이 그대로 들어 있다.", "",
           "| 방식 | P1·P2 건수 | 전체 대비 | 감소율 |", "| --- | --- | --- | --- |"]
-    for name, col in METHODS.items():
-        k = sum(r[col] in ("P1", "P2") for r in all_rows)
+    lines = [("심각도 점수만", first, "cvss_only_tier"), ("규칙", first, "rule_tier")]
+    lines += [(f"규칙 + 에이전트 ({label})", rows, "agent_tier") for label, rows in runs.items()]
+    for name, rows, col in lines:
+        k = sum(r[col] in ("P1", "P2") for r in rows)
         red = f"{(base - k) / base:.0%}" if base else "-"
         md.append(f"| {name} | {k} | {k / n:.0%} | {red} |")
     return md
 
 
+def run_label(results: str) -> str:
+    meta = Path(results).parent / "scan_meta.json"
+    if meta.exists():
+        m = json.loads(meta.read_text(encoding="utf-8")).get("agent_model")
+        if m:
+            return m
+    return Path(results).parent.name
+
+
 def cmd_eval(a) -> None:
-    all_rows = json.loads(Path(a.results).read_text(encoding="utf-8"))
-    rows = {r["key"]: r for r in all_rows}
+    runs = {run_label(p): json.loads(Path(p).read_text(encoding="utf-8")) for p in a.results}
+    prices = {}
+    for spec in a.price or []:  # "모델=입력,출력" (100만 토큰당 달러)
+        name, vals = spec.split("=")
+        prices[name] = tuple(float(v) for v in vals.split(","))
+    by_key = {label: {r["key"]: r for r in rows} for label, rows in runs.items()}
+    first = next(iter(by_key.values()))
     gold = {r["key"]: r["gold_tier"].strip().upper() for r in read_csv(a.gold) if r["gold_tier"].strip()}
-    keys = [k for k in gold if k in rows]
+    keys = [k for k in gold if k in first]
     if not keys:
         raise SystemExit("채점할 항목이 없습니다. gold_tier 칸을 채웠는지 확인하세요.")
+    for label, rows in by_key.items():  # 규칙 쪽 입력이 같아야 같은 표에 놓을 수 있다
+        diff = [k for k in keys if (rows[k]["rule_tier"], rows[k]["cvss_only_tier"])
+                != (first[k]["rule_tier"], first[k]["cvss_only_tier"])]
+        if diff:
+            raise SystemExit(f"{label} 결과의 규칙 판정이 첫 결과와 다릅니다({len(diff)}건). 같은 입력으로 다시 실행하세요.")
+
     g = [gold[k] for k in keys]
-    table = {name: score([rows[k][col] for k in keys], g) for name, col in METHODS.items()}
+    table = {"심각도 점수만": score([first[k]["cvss_only_tier"] for k in keys], g),
+             "규칙": score([first[k]["rule_tier"] for k in keys], g)}
+    for label, rows in by_key.items():
+        table[f"규칙 + 에이전트 ({label})"] = score([rows[k]["agent_tier"] for k in keys], g)
     cols = list(next(iter(table.values())).keys())
     md = ["| 방식 | " + " | ".join(cols) + " |", "| --- " * (len(cols) + 1) + "|"]
     for name, s in table.items():
         cells = [(f"{v:.0%}" if isinstance(v, float) else str(v)) for v in s.values()]
         md.append(f"| {name} | " + " | ".join(cells) + " |")
-    wrong = [f"- {k}: 정답 {gold[k]}, 최종 {rows[k]['agent_tier']}, 규칙 {rows[k]['rule_tier']}"
-             for k in keys if rows[k]["agent_tier"] != gold[k]]
-    text = "\n".join(md + ["", "### 경보 감소 (전체 결과 기준)", ""] + alert_metrics(all_rows)
-                     + ["", "### 에이전트", ""] + agent_metrics(all_rows, gold, Path(a.src))
-                     + ["", "### 최종 판정이 틀린 항목", ""] + (wrong or ["- 없음"]))
+
+    md += ["", "### 경보 감소 (전체 결과 기준)", ""] + alert_metrics(runs)
+    for label, rows in runs.items():
+        md += ["", f"### 에이전트: {label}", ""] + agent_metrics(rows, gold, Path(a.src), prices.get(label))
+    for label, rows in by_key.items():
+        wrong = [f"- {k}: 정답 {gold[k]}, 최종 {rows[k]['agent_tier']}, 규칙 {rows[k]['rule_tier']}"
+                 for k in keys if rows[k]["agent_tier"] != gold[k]]
+        md += ["", f"### 최종 판정이 틀린 항목: {label}", ""] + (wrong or ["- 없음"])
+    text = "\n".join(md)
     print(text)
     if a.out:
         Path(a.out).write_text("# 정확도 측정 결과\n\n" + text + "\n", encoding="utf-8")
@@ -282,7 +324,8 @@ def main() -> None:
     g.set_defaults(func=cmd_gold)
 
     e = sp.add_parser("eval", help="세 방식의 정확도를 비교한다")
-    e.add_argument("--results", required=True)
+    e.add_argument("--results", required=True, nargs="+", help="results.json 여러 개를 주면 모델별로 한 표에 놓는다")
+    e.add_argument("--price", action="append", help="건당 비용 계산용 단가. 예: gpt-6-luna=0.10,0.50 (100만 토큰당 입력,출력 달러)")
     e.add_argument("--gold", required=True)
     e.add_argument("--out", default="eval/result.md")
     e.add_argument("--src", default="sample-app", help="근거 검증에 쓸 분석 대상 폴더")
