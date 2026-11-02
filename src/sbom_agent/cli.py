@@ -60,7 +60,7 @@ def render_report(rows: list[dict]) -> str:
     for i, r in enumerate(rows, 1):
         lines.append(
             f"| {i} | {r['vuln_id']} | {r['package']} {r['version']} | {r['cvss'] or '-'} | "
-            f"{'-' if r['epss'] is None else f'{r['epss']:.3f}'} | {'예' if r['in_kev'] else '아니오'} | "
+            f"{'-' if r['epss'] is None else format(r['epss'], '.3f')} | {'예' if r['in_kev'] else '아니오'} | "
             f"{'예' if r['direct_usages'] else '아니오'} | {r['rule_tier']} | **{r['agent_tier']}** |")
     lines.append("")
     for r in rows:
