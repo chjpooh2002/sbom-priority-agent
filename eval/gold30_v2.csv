@@ -1,0 +1,31 @@
+key,vuln_id,package,version,gold_tier,memo
+CVE-2015-6420|commons-collections,CVE-2015-6420,commons-collections,3.2.1,P4,①에서 멈춤. build.gradle에 선언만 되어 있고 사용되지 않음.
+CVE-2021-23463|h2,CVE-2021-23463,h2,1.4.200,P4,①에서 멈춤. 클래스패스에 있으나 spring-jdbc·데이터 소스 설정이 없어 로드되지 않음. (참고: 콘솔도 꺼짐)
+CVE-2021-44228|log4j-core,CVE-2021-44228,log4j-core,2.14.1,P1,"④에서 멈춤. build.gradle에 직접 선언되어 있고 Controller에서  LogManager, Logger 를 가져오고 :20 에서 요청 헤더 값을 기록하는 과정에서 취약점 발생하고 log.info의 인자로 외부 요청 헤더값을 전달하므로 악성 코드에 쉽게 노출될 수 있다."
+CVE-2021-44832|log4j-core,CVE-2021-44832,log4j-core,2.14.1,P1,"④에서 멈춤. build.gradle에 직접 선언되어 있고 Controller에서  LogManager, Logger 를 가져오고 :20 에서 요청 헤더 값을 기록하는 과정에서 취약점 발생하고 log.info의 인자로 외부 요청 헤더값을 전달하므로 악성 코드에 쉽게 노출될 수 있다."
+CVE-2022-22965|spring-beans,CVE-2022-22965,spring-beans,5.3.17,P3,②에서 멈춤. 간접 의존성이라 처음에 Spring boot를 띄울 때 취약점이 발생할 수 있다.
+CVE-2022-23221|h2,CVE-2022-23221,h2,1.4.200,P4,①에서 멈춤. 클래스패스에 있으나 spring-jdbc·데이터 소스 설정이 없어 로드되지 않음. (참고: 콘솔도 꺼짐)
+CVE-2022-38749|snakeyaml,CVE-2022-38749,snakeyaml,1.29,P3,②에서 멈춤. application.yml을 읽을 때 이 설정 파일이 외부에 노출 되었을 경우 처음에 Spring boot를 읽을 때 취약점에 노출됨.
+CVE-2022-38751|snakeyaml,CVE-2022-38751,snakeyaml,1.29,P3,②에서 멈춤. application.yml을 읽을 때 이 설정 파일이 외부에 노출 되었을 경우 처음에 Spring boot를 읽을 때 취약점에 노출됨.
+CVE-2022-42889|commons-text,CVE-2022-42889,commons-text,1.9,P1,④에서 멈춤. build.gradle에 선언되어 있고 GreetinController에서 요청값을 그대로 내부 메서드로 전달하여 매우 취약함.
+CVE-2023-20861|spring-expression,CVE-2023-20861,spring-expression,5.3.17,P3,②에서 멈춤. 간접 의존성이라 처음에 Spring boot를 띄울 때 취약점이 발생할 수 있다.
+CVE-2023-20883|spring-boot-autoconfigure,CVE-2023-20883,spring-boot-autoconfigure,2.6.5,P3,②에서 멈춤. SpringBootAplication 자동 설정이라 자동 설정 과정에서 외부에 노출된 것이 들어올 수 있는 취약점이 있다.
+CVE-2023-6378|logback-classic,CVE-2023-6378,logback-classic,1.2.11,P3,②에서 멈춤. Spring boot의 기본 로깅 구현이고 기본 설정으로 동작하기에 취약한 기반이 들어올 조건이 된다.
+CVE-2024-12801|logback-core,CVE-2024-12801,logback-core,1.2.11,P3,②에서 멈춤. logback-classic 의 간접 의존성이라 앞의 것의 실행 중 돌아갈 수 있어서 위험함.
+CVE-2024-22243|spring-web,CVE-2024-22243,spring-web,5.3.17,P1,④에서 멈춤. RestController가 포함되어 요청이 오면 전부 이 어노테이션이 온 것들에서 요청을 받으므로 외부에게 취약하다.
+CVE-2024-22262|spring-web,CVE-2024-22262,spring-web,5.3.17,P1,④에서 멈춤. RestController가 포함되어 요청이 오면 전부 이 어노테이션이 온 것들에서 요청을 받으므로 외부에게 취약하다.
+CVE-2024-23672|tomcat-embed-websocket,CVE-2024-23672,tomcat-embed-websocket,9.0.60,P3,②에서 멈춤. 간접 의존성이라 내장 톰캣 구동 시 취약점이 발생할 수 있다.
+CVE-2024-38819|spring-webmvc,CVE-2024-38819,spring-webmvc,5.3.17,P1,④에서 멈춤. RestController가 포함되어 요청이 오면 전부 이 어노테이션이 온 것들에서 요청을 받으므로 외부에게 취약하다.
+CVE-2024-38820|spring-context,CVE-2024-38820,spring-context,5.3.17,P3,②에서 멈춤. 어플리케이션 구동 과정에서 취약점이 있는 파일들을 같이 돌릴 수 있음.
+CVE-2025-48924|commons-lang3,CVE-2025-48924,commons-lang3,3.12.0,P3,②에서 멈춤. commons-text 1.9 의 간접 의존성이라 commons-text 실행 중 돌아갈 수 있어서 위험함.
+CVE-2025-53506|tomcat-embed-core,CVE-2025-53506,tomcat-embed-core,9.0.60,P1,④에서 멈춤. 모든 HTTP 요청을 받기에 가장 취약하다.
+CVE-2025-55668|tomcat-embed-core,CVE-2025-55668,tomcat-embed-core,9.0.60,P1,④에서 멈춤. 모든 HTTP 요청을 받기에 가장 취약하다.
+CVE-2026-10532|logback-core,CVE-2026-10532,logback-core,1.2.11,P3,②에서 멈춤. logback-classic 의 간접 의존성이라 앞의 것의 실행 중 돌아갈 수 있어서 위험함.
+CVE-2026-40973|spring-boot,CVE-2026-40973,spring-boot,2.6.5,P2,③에서 멈춤. Spring boot가 run할 때 내장 톰캣을 돌리는 과정에서 내부가 이미 노출되었을 경우 취약점 발생
+CVE-2026-41848|spring-core,CVE-2026-41848,spring-core,5.3.17,P2,③에서 멈춤. 모든 Spring 모듈의 기반으로 어떠한 요청이 들어와도 관련 Spring 모듈이 동작하기에 매우 취약하다.
+CVE-2026-41849|spring-expression,CVE-2026-41849,spring-expression,5.3.17,P3,②에서 멈춤. 간접 의존성이라 처음에 Spring boot를 띄울 때 취약점이 발생할 수 있다.
+CVE-2026-41853|spring-webmvc,CVE-2026-41853,spring-webmvc,5.3.17,P1,④에서 멈춤. RestController가 포함되어 요청이 오면 전부 이 어노테이션이 온 것들에서 요청을 받으므로 외부에게 취약하다.
+CVE-2026-49844|log4j-api,CVE-2026-49844,log4j-api,2.14.1,P1,"④에서 멈춤. build.gradle에 직접 선언되어 있고 Controller에서  LogManager, Logger 를 가져오고 :20 에서 요청 헤더 값을 기록하는 과정에서 취약점 발생."
+CVE-2026-77310|jackson-databind,CVE-2026-77310,jackson-databind,2.13.2,P1,④에서 멈춤. 컨트롤러의 세 엔드포인트는 모두 GET이라 악성 요청을 쉽게 읽을 수 있어 취약하다.
+CVE-2026-89425|jackson-core,CVE-2026-89425,jackson-core,2.13.2,P3,②에서 멈춤. spring-boot-starter-json 의 간접 의존성이라 앞에 것이 실행 중 돌아갈 수 있어서 위험함.
+CVE-2026-91776|jackson-databind,CVE-2026-91776,jackson-databind,2.13.2,P1,④에서 멈춤. 컨트롤러의 세 엔드포인트는 모두 GET이라 악성 요청을 쉽게 읽을 수 있어 취약하다.
