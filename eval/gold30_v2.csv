@@ -1,13 +1,13 @@
 key,vuln_id,package,version,gold_tier,memo
 CVE-2015-6420|commons-collections,CVE-2015-6420,commons-collections,3.2.1,P4,①에서 멈춤. build.gradle에 선언만 되어 있고 사용되지 않음.
 CVE-2021-23463|h2,CVE-2021-23463,h2,1.4.200,P4,①에서 멈춤. 클래스패스에 있으나 spring-jdbc·데이터 소스 설정이 없어 로드되지 않음. (참고: 콘솔도 꺼짐)
-CVE-2021-44228|log4j-core,CVE-2021-44228,log4j-core,2.14.1,P1,"④에서 멈춤. build.gradle에 직접 선언되어 있고 Controller에서  LogManager, Logger 를 가져오고 :20 에서 요청 헤더 값을 기록하는 과정에서 취약점 발생하고 log.info의 인자로 외부 요청 헤더값을 전달하므로 악성 코드에 쉽게 노출될 수 있다."
-CVE-2021-44832|log4j-core,CVE-2021-44832,log4j-core,2.14.1,P1,"④에서 멈춤. build.gradle에 직접 선언되어 있고 Controller에서  LogManager, Logger 를 가져오고 :20 에서 요청 헤더 값을 기록하는 과정에서 취약점 발생하고 log.info의 인자로 외부 요청 헤더값을 전달하므로 악성 코드에 쉽게 노출될 수 있다."
+CVE-2021-44228|log4j-core,CVE-2021-44228,log4j-core,2.14.1,P4,"v2: ① 아니오 / 실행 확인 결과 log.info 호출을 log4j-to-slf4j가 받아 logback이 기록하고 log4j-core 클래스는 로드되지 않음 (fact_checks.md) / v1 메모:④에서 멈춤. build.gradle에 직접 선언되어 있고 Controller에서  LogManager, Logger 를 가져오고 :20 에서 요청 헤더 값을 기록하는 과정에서 취약점 발생하고 log.info의 인자로 외부 요청 헤더값을 전달하므로 악성 코드에 쉽게 노출될 수 있다."
+CVE-2021-44832|log4j-core,CVE-2021-44832,log4j-core,2.14.1,P4,"v2: ① 아니오 / 실행 확인 결과 log.info 호출을 log4j-to-slf4j가 받아 logback이 기록하고 log4j-core 클래스는 로드되지 않음 (fact_checks.md) / v1 메모: ④에서 멈춤. build.gradle에 직접 선언되어 있고 Controller에서  LogManager, Logger 를 가져오고 :20 에서 요청 헤더 값을 기록하는 과정에서 취약점 발생하고 log.info의 인자로 외부 요청 헤더값을 전달하므로 악성 코드에 쉽게 노출될 수 있다."
 CVE-2022-22965|spring-beans,CVE-2022-22965,spring-beans,5.3.17,P3,②에서 멈춤. 간접 의존성이라 처음에 Spring boot를 띄울 때 취약점이 발생할 수 있다.
 CVE-2022-23221|h2,CVE-2022-23221,h2,1.4.200,P4,①에서 멈춤. 클래스패스에 있으나 spring-jdbc·데이터 소스 설정이 없어 로드되지 않음. (참고: 콘솔도 꺼짐)
 CVE-2022-38749|snakeyaml,CVE-2022-38749,snakeyaml,1.29,P3,②에서 멈춤. application.yml을 읽을 때 이 설정 파일이 외부에 노출 되었을 경우 처음에 Spring boot를 읽을 때 취약점에 노출됨.
 CVE-2022-38751|snakeyaml,CVE-2022-38751,snakeyaml,1.29,P3,②에서 멈춤. application.yml을 읽을 때 이 설정 파일이 외부에 노출 되었을 경우 처음에 Spring boot를 읽을 때 취약점에 노출됨.
-CVE-2022-42889|commons-text,CVE-2022-42889,commons-text,1.9,P1,④에서 멈춤. build.gradle에 선언되어 있고 GreetinController에서 요청값을 그대로 내부 메서드로 전달하여 매우 취약함.
+CVE-2022-42889|commons-text,CVE-2022-42889,commons-text,1.9,P1,v2: 확인 / v1: ④에서 멈춤. build.gradle에 선언되어 있고 GreetinController에서 요청값을 그대로 내부 메서드로 전달하여 매우 취약함.
 CVE-2023-20861|spring-expression,CVE-2023-20861,spring-expression,5.3.17,P3,②에서 멈춤. 간접 의존성이라 처음에 Spring boot를 띄울 때 취약점이 발생할 수 있다.
 CVE-2023-20883|spring-boot-autoconfigure,CVE-2023-20883,spring-boot-autoconfigure,2.6.5,P3,②에서 멈춤. SpringBootAplication 자동 설정이라 자동 설정 과정에서 외부에 노출된 것이 들어올 수 있는 취약점이 있다.
 CVE-2023-6378|logback-classic,CVE-2023-6378,logback-classic,1.2.11,P3,②에서 멈춤. Spring boot의 기본 로깅 구현이고 기본 설정으로 동작하기에 취약한 기반이 들어올 조건이 된다.

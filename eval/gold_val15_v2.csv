@@ -1,16 +1,16 @@
 ﻿key,vuln_id,package,version,gold_tier,memo
-CVE-2015-7501|commons-collections,CVE-2015-7501,commons-collections,3.2.1,P3,build.gradle에서 선언되어 있지만 이 의존성을 사용하는 코드는 없어서 빌드할 때만 문제가 된다.
-CVE-2016-1000027|spring-web,CVE-2016-1000027,spring-web,5.3.17,P1,GreetingController에서 요청과 관련된 어노테이션을 가지고 와서 외부 요청에 취약하다.
-CVE-2021-42392|h2,CVE-2021-42392,h2,1.4.200,P3,build.gradle에서 선언되어 있지만 spring-jdbc 가 없어 DB 연결을 하지 않아 빌드할 때만 문제가 된다.
+CVE-2015-7501|commons-collections,CVE-2015-7501,commons-collections,3.2.1,P4,v2: 두 세트 기준 통일 / ① 로드되지 않음. v1: build.gradle에서 선언되어 있지만 이 의존성을 사용하는 코드는 없어서 빌드할 때만 문제가 된다.
+CVE-2016-1000027|spring-web,CVE-2016-1000027,spring-web,5.3.17,P3,"v2: ② 아니오 / 취약 기능은 HTTP Invoker 역직렬화, 예제 서비스는 사용 안 함 / v1 메모: GreetingController에서 요청과 관련된 어노테이션을 가지고 와서 외부 요청에 취약하다."
+CVE-2021-42392|h2,CVE-2021-42392,h2,1.4.200,P4,v2: 두 세트 기준 통일 / ① 로드되지 않음. v1: build.gradle에서 선언되어 있지만 spring-jdbc 가 없어 DB 연결을 하지 않아 빌드할 때만 문제가 된다.
 CVE-2022-22970|spring-beans,CVE-2022-22970,spring-beans,5.3.17,P3,간접 의존성이지만 바인딩을 할 때 타격을 받은 것을 읽을 때 문제가 발생할 수 있다.
 CVE-2022-38752|snakeyaml,CVE-2022-38752,snakeyaml,1.29,P3,간접 의존성이지만 Spring Boot가 시작할 때 application.yaml 파일을 읽는데 이것이 이미 외부에 노출되었다면 이 파일을 읽는 과정이 취약하다.
-CVE-2022-42004|jackson-databind,CVE-2022-42004,jackson-databind,2.13.2,P1,간접 의존성이지만 컨트롤러의 세 엔드포인트가 모두 GET이라 위험 정보를 읽을 수 있다. 
-CVE-2024-24549|tomcat-embed-core,CVE-2024-24549,tomcat-embed-core,9.0.60,P1,모든 HTTP 요청을 받는 내장 서버이므로 외부에 바로 노출되어 있어 매우 취약하다.
+CVE-2022-42004|jackson-databind,CVE-2022-42004,jackson-databind,2.13.2,P3,v2: ② 아니오 / 취약 기능은 옵션 켠 상태의 JSON 역직렬화 / 요청 본문을 받는 경로 없음 / v1 메모: 간접 의존성이지만 컨트롤러의 세 엔드포인트가 모두 GET이라 위험 정보를 읽을 수 있다. 
+CVE-2024-24549|tomcat-embed-core,CVE-2024-24549,tomcat-embed-core,9.0.60,P3,v2: ② 아니오 / 취약 기능은 HTTP/2 처리 / HTTP/2 꺼짐 / v1 메모: 모든 HTTP 요청을 받는 내장 서버이므로 외부에 바로 노출되어 있어 매우 취약하다.
 CVE-2025-11226|logback-core,CVE-2025-11226,logback-core,1.2.11,P3,간접 의존성이고 코드에서 직접 사용하는 부분이 없이 로드만 된다.
 CVE-2025-22233|spring-context,CVE-2025-22233,spring-context,5.3.17,P3,어플리케이션 컨텍스트 구동할 때 공격 받은 파일을 읽으면 감염될 수 있는 취약점이 있다.
 CVE-2025-22235|spring-boot,CVE-2025-22235,spring-boot,2.6.5,P3,SpringApplication을 구동할 때 설정 파일들을 읽는데 이때 이 파일들이 외부에 노출되었으면 취약점이 높다고 볼 수 있다.
-CVE-2025-41249|spring-core,CVE-2025-41249,spring-core,5.3.17,P1,모든 Spring 모듈의 기반이므로 어떠한 요청과 관련된 행위가 왔을 때도 관여하여 매우 취약하다.
-CVE-2025-68161|log4j-core,CVE-2025-68161,log4j-core,2.14.1,P1,build.gradle에 직접 선언되어 있고 요청의 헤더 값을 log.info(내부 로그)에 기록하여 검증되지 않은 값이 올 수 있어 취약점이 매우 크다.
-CVE-2026-22741|spring-webmvc,CVE-2026-22741,spring-webmvc,5.3.17,P1,RestController 어노테이션과 관련된 내용으로 요청과 관련된 어노테이션이 있어 매우 취약하다.
+CVE-2025-41249|spring-core,CVE-2025-41249,spring-core,5.3.17,P3,v2: ② 아니오 / 취약 기능은 메서드 보안 어노테이션 탐지 / 스프링 시큐리티 없음 / v1 메모: 모든 Spring 모듈의 기반이므로 어떠한 요청과 관련된 행위가 왔을 때도 관여하여 매우 취약하다.
+CVE-2025-68161|log4j-core,CVE-2025-68161,log4j-core,2.14.1,P4,v2: ① 아니오 / 실행 확인 결과 log4j-core 클래스 미로드 (fact_checks.md) / v1 메모: build.gradle에 직접 선언되어 있고 요청의 헤더 값을 log.info(내부 로그)에 기록하여 검증되지 않은 값이 올 수 있어 취약점이 매우 크다.
+CVE-2026-22741|spring-webmvc,CVE-2026-22741,spring-webmvc,5.3.17,P3,v2: ② 아니오 / 취약 기능은 정적 리소스 캐시 + 인코딩 리소스 처리 / 설정·코드·실행 기록 모두에 없음 / v1 메모: RestController 어노테이션과 관련된 내용으로 요청과 관련된 어노테이션이 있어 매우 취약하다.
 CVE-2026-41852|spring-expression,CVE-2026-41852,spring-expression,5.3.17,P3,간접 의존성이고 코드에서 직접 사용하는 부분이 없이 로드만 된다.
 CVE-2026-68494|jackson-core,CVE-2026-68494,jackson-core,2.13.2,P3,간접 의존성이고 코드에서 직접 사용하는 부분이 없이 로드만 된다.
